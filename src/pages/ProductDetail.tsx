@@ -178,7 +178,7 @@ const ProductDetail = () => {
 
           {/* Order Button */}
           <button 
-            onClick={() => window.open(`https://wa.me/+123456789?text=مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`, "_blank")}
+            onClick={() => window.open(`https://wa.me/+212706461139?text=مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`, "_blank")}
             className="bg-floral-green text-white py-3 px-6 rounded-lg flex items-center justify-center hover:bg-opacity-90 transition mb-4"
           >
             <ShoppingBag size={20} className="ml-2" />
@@ -191,7 +191,7 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <WhatsAppButton phoneNumber="+123456789" message={`مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`} />
+      <WhatsAppButton phoneNumber="+212706461139" message={`مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`} />
     </main>
   );
 };
