@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import AdminLogin from "../components/admin/AdminLogin";
 import AdminSidebar from "../components/admin/AdminSidebar";
@@ -18,11 +18,11 @@ const Admin = () => {
   };
 
   // Vérifier si l'utilisateur était déjà authentifié
-  useState(() => {
+  useEffect(() => {
     if (localStorage.getItem("adminAuth") === "true") {
       setIsAuthenticated(true);
     }
-  });
+  }, []);
 
   if (!isAuthenticated) {
     return <AdminLogin onLogin={handleLogin} />;
