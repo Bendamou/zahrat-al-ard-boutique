@@ -71,6 +71,53 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Product Info Section */}
+      <section className="py-12 bg-floral-cream">
+        <div className="container">
+          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6 md:p-8">
+            <h2 className="text-2xl font-amiri font-bold mb-6 text-center text-floral-green">معلومات عن منتجاتنا</h2>
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="bg-floral-pink/10 p-3 rounded-full">
+                  <Flower className="text-floral-pink" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">باقات مصنوعة يدويًا</h3>
+                  <p className="text-gray-700">جميع باقات الورد التي نقدمها مصنوعة يدويًا باستخدام ورود صناعية عالية الجودة. هذه الورود ليست طبيعية، لكنها تتميز بمظهر رائع ويمكن أن تدوم معك لسنوات طويلة، دون أن تذبل أو تتلف.</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="bg-floral-green/10 p-3 rounded-full">
+                  <ShoppingBag className="text-floral-green" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">تصنيع حسب الطلب</h3>
+                  <p className="text-gray-700">بعد أن يقوم العميل بتقديم الطلب، نبدأ مباشرة في تصميم الباقة حسب المواصفات المطلوبة. نحن لا نقدم منتجات جاهزة، بل نصنع كل باقة بشكل خاص وفني بعد استلام الطلب.</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="bg-floral-green/10 p-3 rounded-full">
+                  <Users className="text-floral-green" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">مدة التصنيع</h3>
+                  <p className="text-gray-700">من 2 إلى 4 أيام عمل، حسب نوع وحجم الباقة.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <Link to="/products" className="btn-primary">
+                اكتشف باقاتنا
+                <ArrowRight size={18} className="mr-2" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Products */}
       <section className="py-16 bg-floral-cream/50">
         <div className="container">
@@ -100,16 +147,16 @@ const Index = () => {
               <div className="w-16 h-16 bg-floral-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Flower className="text-floral-green" />
               </div>
-              <h3 className="font-bold text-lg mb-2">زهور طازجة</h3>
-              <p className="text-gray-600">جميع باقاتنا مصنوعة من أجود أنواع الزهور الطازجة يومياً</p>
+              <h3 className="font-bold text-lg mb-2">باقات مميزة</h3>
+              <p className="text-gray-600">باقات ورود صناعية مصنوعة يدويًا ومصممة لتدوم لسنوات طويلة</p>
             </div>
             
             <div className="text-center p-6 rounded-lg bg-floral-cream">
               <div className="w-16 h-16 bg-floral-pink/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag className="text-floral-pink" />
               </div>
-              <h3 className="font-bold text-lg mb-2">توصيل سريع</h3>
-              <p className="text-gray-600">نضمن وصول الباقات بحالة ممتازة وفي الوقت المحدد</p>
+              <h3 className="font-bold text-lg mb-2">تصميم مخصص</h3>
+              <p className="text-gray-600">نصمم كل باقة بشكل مخصص بعد استلام طلبك</p>
             </div>
             
             <div className="text-center p-6 rounded-lg bg-floral-cream">

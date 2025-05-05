@@ -22,6 +22,9 @@ const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => 
         <div className="absolute top-3 right-3 bg-floral-green text-white text-xs py-1 px-2 rounded">
           {category}
         </div>
+        <div className="absolute top-3 left-3 bg-floral-pink text-white text-xs py-1 px-2 rounded">
+          صناعية
+        </div>
       </div>
       <div className="p-4">
         <h3 className="font-amiri font-bold text-lg mb-2">{name}</h3>

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import ProductCard from "../components/ProductCard";
 import WhatsAppButton from "../components/WhatsAppButton";
-import { Search, Flower2 } from "lucide-react";
+import { Search, Flower2, Clock } from "lucide-react";
 
 // Données temporaires
 const allProducts = [
@@ -91,11 +91,26 @@ const Products = () => {
     <main className="min-h-screen py-8">
       <div className="container">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-amiri font-bold mb-4 text-floral-green">منتجاتنا</h1>
-          <p className="max-w-2xl mx-auto text-gray-600">
-            اكتشف مجموعتنا المتنوعة من الباقات الطازجة والنباتات المنزلية والهدايا المميزة
+          <p className="max-w-2xl mx-auto text-gray-600 mb-4">
+            اكتشف مجموعتنا المتنوعة من الباقات والنباتات المنزلية والهدايا المميزة
           </p>
+          
+          {/* Product Info Banner */}
+          <div className="bg-floral-cream rounded-lg p-4 max-w-3xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+              <div className="flex items-center gap-2 text-floral-green">
+                <Flower2 size={20} />
+                <p className="text-sm font-medium">باقات ورد صناعية مصنوعة يدويًا</p>
+              </div>
+              <div className="h-4 w-px bg-floral-green/20 hidden md:block"></div>
+              <div className="flex items-center gap-2 text-floral-pink">
+                <Clock size={20} />
+                <p className="text-sm font-medium">التصنيع يبدأ بعد الطلب (2-4 أيام)</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -151,7 +166,7 @@ const Products = () => {
         )}
       </div>
 
-      <WhatsAppButton phoneNumber="+123456789" message="مرحبا، أود الاستفسار عن المنتجات لديكم." />
+      <WhatsAppButton phoneNumber="+123456789" message="مرحبا، أود طلب باقة الورد الصناعية." />
     </main>
   );
 };
