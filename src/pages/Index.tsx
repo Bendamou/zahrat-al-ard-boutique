@@ -170,7 +170,7 @@ const Index = () => {
         </div>
       </section>
 
-      <WhatsAppButton phoneNumber="+123456789" message="مرحبا، أود الاستفسار عن المنتجات لديكم." />
+      <WhatsAppButton phoneNumber="+212706461139" message="مرحبا، أود الاستفسار عن المنتجات لديكم." />
     </main>
   );
 };
