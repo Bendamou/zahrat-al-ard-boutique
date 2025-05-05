@@ -150,7 +150,7 @@ const Contact = () => {
         </div>
       </div>
 
-      <WhatsAppButton phoneNumber="+123456789" message="مرحبا، أود التواصل معكم." />
+      <WhatsAppButton phoneNumber="+212706461139" message="مرحبا، أود التواصل معكم." />
     </main>
   );
 };
