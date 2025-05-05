@@ -13,6 +13,14 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
+// Admin Pages
+import Admin from "./pages/Admin";
+import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import ProductsAdmin from "./pages/admin/ProductsAdmin";
+import HomeAdmin from "./pages/admin/HomeAdmin";
+import AboutAdmin from "./pages/admin/AboutAdmin";
+import ContactAdmin from "./pages/admin/ContactAdmin";
+
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -25,20 +33,77 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <div className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <Footer />
-        </div>
+        <Routes>
+          {/* Admin Routes */}
+          <Route path="/admin" element={<Admin />}>
+            <Route path="dashboard" element={<DashboardAdmin />} />
+            <Route path="products" element={<ProductsAdmin />} />
+            <Route path="home" element={<HomeAdmin />} />
+            <Route path="about" element={<AboutAdmin />} />
+            <Route path="contact" element={<ContactAdmin />} />
+          </Route>
+
+          {/* Public Routes */}
+          <Route path="/" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <Index />
+              </div>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/products" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <Products />
+              </div>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/products/:id" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <ProductDetail />
+              </div>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/about" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <About />
+              </div>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="/contact" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <Contact />
+              </div>
+              <Footer />
+            </div>
+          } />
+          
+          <Route path="*" element={
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <div className="flex-grow">
+                <NotFound />
+              </div>
+              <Footer />
+            </div>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
