@@ -40,6 +40,14 @@ const initialProducts = [
     image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
     category: "هدايا",
     description: "هدية فاخرة تتضمن باقة ورد صناعية مع تغليف أنيق، مناسبة للمناسبات الخاصة والأعياد."
+  },
+  {
+    id: 5,
+    name: "وردة الصيف",
+    price: 75,
+    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
+    category: "",
+    description: "وردة صناعية مميزة بألوان الصيف، مثالية للديكور المنزلي والهدايا البسيطة."
   }
 ];
 
@@ -150,10 +158,11 @@ const ProductsAdmin = () => {
                           src={product.image}
                           alt={product.name}
                           className="w-14 h-14 object-cover rounded"
+                          loading="lazy"
                         />
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{product.category || <span className="text-gray-400 italic">Sans catégorie</span>}</TableCell>
                       <TableCell>{product.price} ﷼</TableCell>
                       <TableCell className="flex justify-end space-x-2">
                         <Button

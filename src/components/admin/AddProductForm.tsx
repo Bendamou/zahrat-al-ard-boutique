@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 
+// Catégories disponibles
 const categories = ["باقات", "نباتات", "هدايا"];
 
 interface Product {
@@ -28,7 +29,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
     name: "",
     price: 0,
     image: "",
-    category: categories[0],
+    category: "", // Aucune catégorie par défaut
     description: "",
   });
   
@@ -123,7 +124,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
         </div>
         
         <div>
-          <Label htmlFor="category">Catégorie</Label>
+          <Label htmlFor="category">Catégorie (optionnelle)</Label>
           <select
             id="category"
             name="category"
@@ -131,6 +132,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
             onChange={handleChange}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
           >
+            <option value="">-- Aucune catégorie --</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -173,6 +175,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
                 src={formData.image}
                 alt="Aperçu"
                 className="w-40 h-40 object-cover border rounded"
+                loading="lazy"
               />
             </div>
           )}

@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import ProductCard from "../components/ProductCard";
-import WhatsAppButton from "../components/WhatsAppButton";
+import { Link } from "react-router-dom";
 import { Search, Flower2, Clock } from "lucide-react";
 
 // Données temporaires
@@ -61,10 +60,44 @@ const allProducts = [
     price: 220,
     image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
     category: "هدايا"
+  },
+  {
+    id: 9,
+    name: "وردة الصيف",
+    price: 75,
+    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
+    category: ""
   }
 ];
 
 const categories = ["الكل", "باقات", "نباتات", "هدايا"];
+
+// Composant de carte produit avec lien de navigation
+const ProductCard = ({ id, name, price, image, category }: { 
+  id: number, 
+  name: string, 
+  price: number, 
+  image: string, 
+  category: string 
+}) => (
+  <Link to={`/products/${id}`} className="group">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full">
+      <div className="aspect-square overflow-hidden">
+        <img 
+          src={image} 
+          alt={name} 
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="font-bold text-lg mb-1 text-floral-green">{name}</h3>
+        {category && <span className="text-xs bg-floral-cream text-floral-green px-2 py-1 rounded-full">{category}</span>}
+        <p className="mt-2 font-bold text-floral-pink text-xl">{price} ﷼</p>
+      </div>
+    </div>
+  </Link>
+);
 
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState("الكل");
@@ -165,8 +198,6 @@ const Products = () => {
           </div>
         )}
       </div>
-
-      <WhatsAppButton phoneNumber="+212706461139" message="مرحبا، أود طلب باقة الورد الصناعية." />
     </main>
   );
 };
