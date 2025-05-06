@@ -6,9 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 
-// Catégories disponibles
-const categories = ["باقات", "نباتات", "هدايا"];
-
 interface Product {
   id?: number;
   name: string;
@@ -34,6 +31,16 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<string[]>([]);
+
+  // Load categories from localStorage
+  useEffect(() => {
+    const savedCategories = localStorage.getItem('storeCategories');
+    if (savedCategories) {
+      const categoryData = JSON.parse(savedCategories);
+      setCategories(categoryData.map((cat: any) => cat.name));
+    }
+  }, []);
 
   useEffect(() => {
     if (initialData) {

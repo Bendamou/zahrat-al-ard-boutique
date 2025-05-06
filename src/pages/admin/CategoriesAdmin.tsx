@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,36 @@ const CategoriesAdmin = () => {
   const [editingCategory, setEditingCategory] = useState<{ id: number, name: string } | null>(null);
   const { toast } = useToast();
 
+  // Load categories from localStorage on component mount
+  useEffect(() => {
+    const savedCategories = localStorage.getItem('storeCategories');
+    if (savedCategories) {
+      setCategories(JSON.parse(savedCategories));
+    } else {
+      // Initialize localStorage with default categories
+      localStorage.setItem('storeCategories', JSON.stringify(initialCategories));
+    }
+  }, []);
+
+  // Update product counts
+  useEffect(() => {
+    const countProductsByCategory = () => {
+      const savedProducts = localStorage.getItem('storeProducts');
+      if (!savedProducts) return;
+      
+      const products = JSON.parse(savedProducts);
+      const updatedCategories = categories.map(category => {
+        const count = products.filter((product: any) => product.category === category.name).length;
+        return { ...category, productCount: count };
+      });
+      
+      setCategories(updatedCategories);
+      localStorage.setItem('storeCategories', JSON.stringify(updatedCategories));
+    };
+    
+    countProductsByCategory();
+  }, []);
+
   const handleAddCategory = () => {
     if (!newCategory.trim()) {
       toast({
@@ -30,7 +60,9 @@ const CategoriesAdmin = () => {
     }
 
     const newId = Math.max(0, ...categories.map(c => c.id)) + 1;
-    setCategories([...categories, { id: newId, name: newCategory, productCount: 0 }]);
+    const updatedCategories = [...categories, { id: newId, name: newCategory, productCount: 0 }];
+    setCategories(updatedCategories);
+    localStorage.setItem('storeCategories', JSON.stringify(updatedCategories));
     setNewCategory("");
     
     toast({
@@ -49,9 +81,26 @@ const CategoriesAdmin = () => {
       return;
     }
 
-    setCategories(categories.map(category => 
+    // Get old name to update products
+    const oldName = categories.find(c => c.id === id)?.name;
+    const updatedCategories = categories.map(category => 
       category.id === id ? { ...category, name: newName } : category
-    ));
+    );
+    
+    setCategories(updatedCategories);
+    localStorage.setItem('storeCategories', JSON.stringify(updatedCategories));
+    
+    // Update category name in products
+    if (oldName) {
+      const savedProducts = localStorage.getItem('storeProducts');
+      if (savedProducts) {
+        const products = JSON.parse(savedProducts);
+        const updatedProducts = products.map((product: any) => 
+          product.category === oldName ? { ...product, category: newName } : product
+        );
+        localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+      }
+    }
     
     setEditingCategory(null);
     
@@ -70,9 +119,21 @@ const CategoriesAdmin = () => {
         description: `Cette catégorie contient ${categoryToDelete.productCount} produit(s). Les produits ne seront plus associés à cette catégorie.`,
         variant: "destructive"
       });
+      
+      // Remove category from products
+      const savedProducts = localStorage.getItem('storeProducts');
+      if (savedProducts) {
+        const products = JSON.parse(savedProducts);
+        const updatedProducts = products.map((product: any) => 
+          product.category === categoryToDelete.name ? { ...product, category: "" } : product
+        );
+        localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+      }
     }
     
-    setCategories(categories.filter(category => category.id !== id));
+    const updatedCategories = categories.filter(category => category.id !== id);
+    setCategories(updatedCategories);
+    localStorage.setItem('storeCategories', JSON.stringify(updatedCategories));
     
     toast({
       title: "Catégorie supprimée",

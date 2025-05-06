@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Flower2, Clock } from "lucide-react";
 
-// Données temporaires
-const allProducts = [
+// Données temporaires (fallback)
+const defaultProducts = [
   {
     id: 1,
     name: "باقة الربيع",
@@ -70,8 +70,6 @@ const allProducts = [
   }
 ];
 
-const categories = ["الكل", "باقات", "نباتات", "هدايا"];
-
 // Composant de carte produit avec lien de navigation
 const ProductCard = ({ id, name, price, image, category }: { 
   id: number, 
@@ -100,8 +98,25 @@ const ProductCard = ({ id, name, price, image, category }: {
 );
 
 const Products = () => {
+  const [allProducts, setAllProducts] = useState(defaultProducts);
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState(["الكل", "باقات", "نباتات", "هدايا"]);
+
+  // Load products from localStorage
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('storeProducts');
+    if (savedProducts) {
+      setAllProducts(JSON.parse(savedProducts));
+    }
+    
+    // Load categories from localStorage
+    const savedCategories = localStorage.getItem('storeCategories');
+    if (savedCategories) {
+      const categoryList = JSON.parse(savedCategories);
+      setCategories(["الكل", ...categoryList.map((cat: any) => cat.name)]);
+    }
+  }, []);
 
   const filteredProducts = allProducts.filter((product) => {
     // Filter by category

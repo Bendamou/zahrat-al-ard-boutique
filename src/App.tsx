@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
 // Pages
 import Index from "./pages/Index";
@@ -32,6 +32,17 @@ import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
+// Layout component for public pages
+const PublicLayout = () => (
+  <div className="flex flex-col min-h-screen">
+    <Navbar />
+    <div className="flex-grow">
+      <Outlet />
+    </div>
+    <Footer />
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -53,66 +64,15 @@ const App = () => (
             <Route path="languages" element={<LanguagesAdmin />} />
           </Route>
 
-          {/* Public Routes */}
-          <Route path="/" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <Index />
-              </div>
-              <Footer />
-            </div>
-          } />
-          
-          <Route path="/products" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <Products />
-              </div>
-              <Footer />
-            </div>
-          } />
-          
-          <Route path="/products/:id" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <ProductDetail />
-              </div>
-              <Footer />
-            </div>
-          } />
-          
-          <Route path="/about" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <About />
-              </div>
-              <Footer />
-            </div>
-          } />
-          
-          <Route path="/contact" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <Contact />
-              </div>
-              <Footer />
-            </div>
-          } />
-          
-          <Route path="*" element={
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-grow">
-                <NotFound />
-              </div>
-              <Footer />
-            </div>
-          } />
+          {/* Public Routes - with simplified layout */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

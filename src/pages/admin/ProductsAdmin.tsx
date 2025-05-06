@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import AddProductForm from "@/components/admin/AddProductForm";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 
-// Données temporaires (mêmes que dans Products.tsx)
+// Données temporaires (mêmes que dans Products.tsx pour synchroniser)
 const initialProducts = [
   {
     id: 1,
@@ -43,6 +43,38 @@ const initialProducts = [
   },
   {
     id: 5,
+    name: "باقة الصباح",
+    price: 110,
+    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+    category: "باقات",
+    description: "باقة صباحية منعشة مصنوعة من الورود الصناعية ذات الألوان الفاتحة والمبهجة."
+  },
+  {
+    id: 6,
+    name: "نبتة الظل",
+    price: 90,
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+    category: "نباتات",
+    description: "نبتة صناعية مثالية للأماكن قليلة الإضاءة، تضيف لمسة من الأناقة والحيوية للمكان."
+  },
+  {
+    id: 7,
+    name: "باقة الاحتفال",
+    price: 180,
+    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    category: "باقات",
+    description: "باقة مميزة للاحتفالات والمناسبات الخاصة، مصممة بعناية لإضفاء البهجة."
+  },
+  {
+    id: 8,
+    name: "هدية الحب",
+    price: 220,
+    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+    category: "هدايا",
+    description: "هدية رومانسية مميزة مع تغليف أنيق، مثالية للتعبير عن المشاعر في المناسبات الخاصة."
+  },
+  {
+    id: 9,
     name: "وردة الصيف",
     price: 75,
     image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
@@ -64,9 +96,14 @@ const ProductsAdmin = () => {
 
   const handleAddProduct = (newProduct: any) => {
     // Ajout d'un nouvel ID (temporaire jusqu'à l'intégration de Supabase)
-    const newId = Math.max(...products.map((p) => p.id)) + 1;
+    const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
     const productWithId = { ...newProduct, id: newId };
     setProducts([...products, productWithId]);
+    
+    // Store in localStorage to persist between pages
+    const updatedProducts = [...products, productWithId];
+    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+    
     toast({
       title: "Produit ajouté",
       description: `${newProduct.name} a été ajouté avec succès.`,
@@ -75,11 +112,14 @@ const ProductsAdmin = () => {
   };
 
   const handleUpdateProduct = (updatedProduct: any) => {
-    setProducts(
-      products.map((p) =>
-        p.id === updatedProduct.id ? updatedProduct : p
-      )
+    const updatedProducts = products.map((p) =>
+      p.id === updatedProduct.id ? updatedProduct : p
     );
+    setProducts(updatedProducts);
+    
+    // Update localStorage
+    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+    
     toast({
       title: "Produit mis à jour",
       description: `${updatedProduct.name} a été mis à jour avec succès.`,
@@ -90,7 +130,12 @@ const ProductsAdmin = () => {
 
   const handleDeleteProduct = (id: number) => {
     const productName = products.find(p => p.id === id)?.name;
-    setProducts(products.filter((p) => p.id !== id));
+    const updatedProducts = products.filter((p) => p.id !== id);
+    setProducts(updatedProducts);
+    
+    // Update localStorage
+    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+    
     toast({
       title: "Produit supprimé",
       description: `${productName} a été supprimé avec succès.`,
@@ -101,6 +146,17 @@ const ProductsAdmin = () => {
     setEditingProduct(product);
     setShowAddForm(true);
   };
+
+  // Load products from localStorage if available
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('storeProducts');
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    } else {
+      // Initialize localStorage with default products
+      localStorage.setItem('storeProducts', JSON.stringify(initialProducts));
+    }
+  }, []);
 
   return (
     <div>
