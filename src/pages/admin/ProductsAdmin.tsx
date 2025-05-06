@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Edit, Trash2, Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import AddProductForm from "@/components/admin/AddProductForm";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import AddProductForm from "@/components/admin/AddProductForm";
+import ProductsList from "@/components/admin/ProductsList";
+import ProductSearch from "@/components/admin/ProductSearch";
 
-// Données temporaires (mêmes que dans Products.tsx pour synchroniser)
+// Initial products data (moved to a separate constant)
 const initialProducts = [
   {
     id: 1,
@@ -83,25 +83,46 @@ const initialProducts = [
   }
 ];
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+}
+
 const ProductsAdmin = () => {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
+  // Filter products based on search query
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddProduct = (newProduct: any) => {
+  // Load products from localStorage if available
+  useEffect(() => {
+    const savedProducts = localStorage.getItem('storeProducts');
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    } else {
+      // Initialize localStorage with default products
+      localStorage.setItem('storeProducts', JSON.stringify(initialProducts));
+    }
+  }, []);
+
+  const handleAddProduct = (newProduct: Product) => {
     // Ajout d'un nouvel ID (temporaire jusqu'à l'intégration de Supabase)
     const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
     const productWithId = { ...newProduct, id: newId };
-    setProducts([...products, productWithId]);
     
-    // Store in localStorage to persist between pages
+    // Update state and localStorage
     const updatedProducts = [...products, productWithId];
+    setProducts(updatedProducts);
     localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
     
     toast({
@@ -111,13 +132,13 @@ const ProductsAdmin = () => {
     setShowAddForm(false);
   };
 
-  const handleUpdateProduct = (updatedProduct: any) => {
+  const handleUpdateProduct = (updatedProduct: Product) => {
     const updatedProducts = products.map((p) =>
       p.id === updatedProduct.id ? updatedProduct : p
     );
-    setProducts(updatedProducts);
     
-    // Update localStorage
+    // Update state and localStorage
+    setProducts(updatedProducts);
     localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
     
     toast({
@@ -131,9 +152,9 @@ const ProductsAdmin = () => {
   const handleDeleteProduct = (id: number) => {
     const productName = products.find(p => p.id === id)?.name;
     const updatedProducts = products.filter((p) => p.id !== id);
-    setProducts(updatedProducts);
     
-    // Update localStorage
+    // Update state and localStorage
+    setProducts(updatedProducts);
     localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
     
     toast({
@@ -142,21 +163,10 @@ const ProductsAdmin = () => {
     });
   };
 
-  const handleEditClick = (product: any) => {
+  const handleEditClick = (product: Product) => {
     setEditingProduct(product);
     setShowAddForm(true);
   };
-
-  // Load products from localStorage if available
-  useEffect(() => {
-    const savedProducts = localStorage.getItem('storeProducts');
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
-    } else {
-      // Initialize localStorage with default products
-      localStorage.setItem('storeProducts', JSON.stringify(initialProducts));
-    }
-  }, []);
 
   return (
     <div>
@@ -184,71 +194,15 @@ const ProductsAdmin = () => {
         />
       ) : (
         <>
-          <div className="mb-4 relative">
-            <Input
-              placeholder="Rechercher un produit..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-          </div>
-
-          <div className="bg-white rounded-lg shadow">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Prix</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-14 h-14 object-cover rounded"
-                          loading="lazy"
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.category || <span className="text-gray-400 italic">Sans catégorie</span>}</TableCell>
-                      <TableCell>{product.price} ﷼</TableCell>
-                      <TableCell className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditClick(product)}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleDeleteProduct(product.id)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                      Aucun produit trouvé
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <ProductSearch 
+            searchQuery={searchQuery} 
+            onSearchChange={setSearchQuery} 
+          />
+          <ProductsList 
+            products={filteredProducts} 
+            onEditProduct={handleEditClick} 
+            onDeleteProduct={handleDeleteProduct} 
+          />
         </>
       )}
     </div>

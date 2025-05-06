@@ -117,6 +117,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Product Name Field */}
         <div>
           <Label htmlFor="name">Nom du produit</Label>
           <Input
@@ -130,6 +131,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
         
+        {/* Category Field */}
         <div>
           <Label htmlFor="category">Catégorie (optionnelle)</Label>
           <select
@@ -148,6 +150,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           </select>
         </div>
         
+        {/* Price Field */}
         <div>
           <Label htmlFor="price">Prix (﷼)</Label>
           <Input
@@ -163,6 +166,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
         
+        {/* Image Field with Preview */}
         <div>
           <Label htmlFor="image">URL de l'image</Label>
           <Input
@@ -188,6 +192,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           )}
         </div>
         
+        {/* Description Field */}
         <div>
           <Label htmlFor="description">Description</Label>
           <Textarea
@@ -202,6 +207,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
         </div>
         
+        {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-3">
           <Button variant="outline" onClick={onCancel}>
             Annuler
