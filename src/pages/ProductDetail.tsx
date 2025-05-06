@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShoppingBag } from "lucide-react";
 import WhatsAppButton from "../components/WhatsAppButton";
 import { useToast } from "@/hooks/use-toast";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Textarea } from "@/components/ui/textarea";
 
 // Temporary data (same as in Products.tsx)
 const allProducts = [
@@ -13,7 +15,12 @@ const allProducts = [
     price: 120,
     image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
     category: "باقات",
-    description: "باقة مميزة من الورود الصناعية المصنوعة يدويًا، تتميز بألوان الربيع الزاهية وتدوم لسنوات طويلة."
+    description: "باقة مميزة من الورود الصناعية المصنوعة يدويًا، تتميز بألوان الربيع الزاهية وتدوم لسنوات طويلة.",
+    images: [
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    ]
   },
   {
     id: 2,
@@ -21,7 +28,12 @@ const allProducts = [
     price: 80,
     image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
     category: "نباتات",
-    description: "نبتة منزلية صناعية جميلة، سهلة العناية لا تحتاج إلى ماء أو ضوء، مثالية للمنازل والمكاتب."
+    description: "نبتة منزلية صناعية جميلة، سهلة العناية لا تحتاج إلى ماء أو ضوء، مثالية للمنازل والمكاتب.",
+    images: [
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      "https://images.unsplash.com/photo-1472396961693-142e6e269027",
+      "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
+    ]
   },
   {
     id: 3,
@@ -29,7 +41,12 @@ const allProducts = [
     price: 150,
     image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
     category: "باقات",
-    description: "باقة مميزة للمناسبات السعيدة، مصنوعة من أجود أنواع الورود الصناعية التي تحتفظ برونقها وجمالها لفترة طويلة."
+    description: "باقة مميزة للمناسبات السعيدة، مصنوعة من أجود أنواع الورود الصناعية التي تحتفظ برونقها وجمالها لفترة طويلة.",
+    images: [
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+    ]
   },
   {
     id: 4,
@@ -37,7 +54,12 @@ const allProducts = [
     price: 200,
     image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
     category: "هدايا",
-    description: "هدية فاخرة تتضمن باقة ورد صناعية مع تغليف أنيق، مناسبة للمناسبات الخاصة والأعياد."
+    description: "هدية فاخرة تتضمن باقة ورد صناعية مع تغليف أنيق، مناسبة للمناسبات الخاصة والأعياد.",
+    images: [
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    ]
   },
   {
     id: 5,
@@ -45,7 +67,12 @@ const allProducts = [
     price: 110,
     image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
     category: "باقات",
-    description: "باقة منعشة بألوان فاتحة، مصنوعة يدويًا من أجود أنواع الورود الصناعية، مثالية لإضافة لمسة جمالية للمكان."
+    description: "باقة منعشة بألوان فاتحة، مصنوعة يدويًا من أجود أنواع الورود الصناعية، مثالية لإضافة لمسة جمالية للمكان.",
+    images: [
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    ]
   },
   {
     id: 6,
@@ -53,7 +80,12 @@ const allProducts = [
     price: 90,
     image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
     category: "نباتات",
-    description: "نبتة صناعية فاخرة مناسبة للأماكن ذات الإضاءة المنخفضة، مصممة لتضيف لمسة من الطبيعة إلى ديكور منزلك."
+    description: "نبتة صناعية فاخرة مناسبة للأماكن ذات الإضاءة المنخفضة، مصممة لتضيف لمسة من الطبيعة إلى ديكور منزلك.",
+    images: [
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      "https://images.unsplash.com/photo-1472396961693-142e6e269027",
+      "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
+    ]
   },
   {
     id: 7,
@@ -61,7 +93,12 @@ const allProducts = [
     price: 180,
     image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
     category: "باقات",
-    description: "باقة فاخرة مصممة خصيصًا للاحتفالات والمناسبات الخاصة، مصنوعة يدويًا من ورود صناعية عالية الجودة."
+    description: "باقة فاخرة مصممة خصيصًا للاحتفالات والمناسبات الخاصة، مصنوعة يدويًا من ورود صناعية عالية الجودة.",
+    images: [
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+    ]
   },
   {
     id: 8,
@@ -69,7 +106,12 @@ const allProducts = [
     price: 220,
     image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
     category: "هدايا",
-    description: "هدية رومانسية مميزة تتضمن باقة ورد صناعية حمراء، مغلفة بشكل أنيق ومناسبة للتعبير عن مشاعر الحب."
+    description: "هدية رومانسية مميزة تتضمن باقة ورد صناعية حمراء، مغلفة بشكل أنيق ومناسبة للتعبير عن مشاعر الحب.",
+    images: [
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    ]
   }
 ];
 
@@ -77,6 +119,8 @@ const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [customMessage, setCustomMessage] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,6 +129,9 @@ const ProductDetail = () => {
       setIsLoading(true);
       setTimeout(() => {
         const foundProduct = allProducts.find(p => p.id === Number(id));
+        if (foundProduct) {
+          setSelectedImage(foundProduct.images[0]);
+        }
         setProduct(foundProduct || null);
         setIsLoading(false);
       }, 300);
@@ -98,6 +145,10 @@ const ProductDetail = () => {
       title: "تمت الإضافة إلى السلة",
       description: `تمت إضافة ${product?.name} إلى سلة المشتريات`,
     });
+  };
+
+  const handleImageClick = (image: string) => {
+    setSelectedImage(image);
   };
 
   if (isLoading) {
@@ -125,6 +176,17 @@ const ProductDetail = () => {
     );
   }
 
+  // Prepare WhatsApp message with custom text
+  const getWhatsAppMessage = () => {
+    let message = `مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`;
+    
+    if (customMessage.trim()) {
+      message += `\n\nملاحظات إضافية: ${customMessage.trim()}`;
+    }
+    
+    return message;
+  };
+
   return (
     <main className="container py-8">
       {/* Back button */}
@@ -134,18 +196,46 @@ const ProductDetail = () => {
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <div className="relative overflow-hidden rounded-lg">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-auto object-cover"
-          />
-          <div className="absolute top-4 right-4 bg-floral-green text-white text-sm py-1 px-3 rounded">
-            {product.category}
+        {/* Product Image Gallery */}
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-lg">
+            <img
+              src={selectedImage || product.image}
+              alt={product.name}
+              className="w-full h-auto object-cover"
+              loading="lazy"
+            />
+            <div className="absolute top-4 right-4 bg-floral-green text-white text-sm py-1 px-3 rounded">
+              {product.category}
+            </div>
+            <div className="absolute top-4 left-4 bg-floral-pink text-white text-sm py-1 px-3 rounded">
+              صناعية
+            </div>
           </div>
-          <div className="absolute top-4 left-4 bg-floral-pink text-white text-sm py-1 px-3 rounded">
-            صناعية
+          
+          {/* Thumbnails Gallery */}
+          <div className="mt-4">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {product.images.map((image: string, index: number) => (
+                  <CarouselItem key={index} className="basis-1/4 md:basis-1/5">
+                    <div 
+                      className={`cursor-pointer p-1 rounded-md border-2 ${selectedImage === image ? 'border-floral-green' : 'border-transparent'}`}
+                      onClick={() => handleImageClick(image)}
+                    >
+                      <img 
+                        src={image} 
+                        alt={`${product.name} - صورة ${index + 1}`} 
+                        className="h-16 w-full object-cover rounded"
+                        loading="lazy"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-0" />
+              <CarouselNext className="right-0" />
+            </Carousel>
           </div>
         </div>
 
@@ -176,9 +266,24 @@ const ProductDetail = () => {
             </p>
           </div>
 
+          {/* Custom Message Field */}
+          <div className="mb-4">
+            <label htmlFor="custom-message" className="block text-sm font-medium mb-2">
+              هل لديك أي طلبات خاصة؟
+            </label>
+            <Textarea
+              id="custom-message"
+              placeholder="مثال: أريد إضافة بطاقة تهنئة، أريد لونًا محددًا، الخ..."
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
+              className="w-full mb-2"
+              rows={3}
+            />
+          </div>
+
           {/* Order Button */}
           <button 
-            onClick={() => window.open(`https://wa.me/+212706461139?text=مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`, "_blank")}
+            onClick={() => window.open(`https://wa.me/+212706461139?text=${encodeURIComponent(getWhatsAppMessage())}`, "_blank")}
             className="bg-floral-green text-white py-3 px-6 rounded-lg flex items-center justify-center hover:bg-opacity-90 transition mb-4"
           >
             <ShoppingBag size={20} className="ml-2" />
@@ -191,7 +296,7 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <WhatsAppButton phoneNumber="+212706461139" message={`مرحبا، أود طلب ${product.name} بسعر ${product.price} ﷼`} />
+      <WhatsAppButton phoneNumber="+212706461139" message={getWhatsAppMessage()} />
     </main>
   );
 };

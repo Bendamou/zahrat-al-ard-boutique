@@ -12,12 +12,13 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => {
   return (
-    <div className="product-card group">
+    <Link to={`/products/${id}`} className="product-card group block">
       <div className="relative overflow-hidden">
         <img
           src={image}
           alt={name}
           className="w-full h-64 object-cover transition duration-500 group-hover:scale-105"
+          loading="lazy"
         />
         <div className="absolute top-3 right-3 bg-floral-green text-white text-xs py-1 px-2 rounded">
           {category}
@@ -30,15 +31,12 @@ const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => 
         <h3 className="font-amiri font-bold text-lg mb-2">{name}</h3>
         <div className="flex justify-between items-center">
           <p className="font-bold text-floral-green">{price} ﷼</p>
-          <Link 
-            to={`/products/${id}`}
-            className="bg-floral-pink text-white p-2 rounded-full hover:bg-opacity-90 transition"
-          >
+          <div className="bg-floral-pink text-white p-2 rounded-full hover:bg-opacity-90 transition">
             <ShoppingBag size={18} />
-          </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -34,6 +34,7 @@ const About = () => {
                 src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07" 
                 alt="قصة زهرة الأرض" 
                 className="rounded-lg shadow-md w-full h-80 object-cover"
+                loading="lazy"
               />
             </div>
           </div>
@@ -79,6 +80,7 @@ const About = () => {
                   src={`https://randomuser.me/api/portraits/women/${member + 20}.jpg`} 
                   alt="عضو الفريق" 
                   className="w-full h-64 object-cover"
+                  loading="lazy"
                 />
                 <div className="p-4 text-center">
                   <h3 className="font-bold font-amiri text-lg mb-1">سارة الخالدي</h3>
