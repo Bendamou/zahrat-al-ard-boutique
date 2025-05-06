@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import ProductsAdmin from "./pages/admin/ProductsAdmin";
+import CategoriesAdmin from "./pages/admin/CategoriesAdmin";
 import HomeAdmin from "./pages/admin/HomeAdmin";
 import AboutAdmin from "./pages/admin/AboutAdmin";
 import ContactAdmin from "./pages/admin/ContactAdmin";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />}>
             <Route path="dashboard" element={<DashboardAdmin />} />
             <Route path="products" element={<ProductsAdmin />} />
+            <Route path="categories" element={<CategoriesAdmin />} />
             <Route path="home" element={<HomeAdmin />} />
             <Route path="about" element={<AboutAdmin />} />
             <Route path="contact" element={<ContactAdmin />} />

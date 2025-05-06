@@ -1,6 +1,6 @@
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Flower2, Home, Info, Mail, Settings, ShoppingBag, User, File } from "lucide-react";
+import { Flower2, Home, Info, Mail, Settings, ShoppingBag, User, Tag, Globe, Image, Palette, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminSidebar = () => {
@@ -20,9 +20,14 @@ const AdminSidebar = () => {
   const menuItems = [
     { name: "Tableau de bord", path: "/admin/dashboard", icon: Home },
     { name: "Produits", path: "/admin/products", icon: ShoppingBag },
+    { name: "Catégories", path: "/admin/categories", icon: Tag },
+    { name: "Messages", path: "/admin/messages", icon: MessageSquare },
+    { name: "Images", path: "/admin/images", icon: Image },
     { name: "Page d'accueil", path: "/admin/home", icon: Home },
     { name: "À propos", path: "/admin/about", icon: Info },
     { name: "Contact", path: "/admin/contact", icon: Mail },
+    { name: "Thème & Couleurs", path: "/admin/theme", icon: Palette },
+    { name: "Langues", path: "/admin/languages", icon: Globe },
   ];
 
   return (
