@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,6 +89,7 @@ interface Product {
   image: string;
   category: string;
   description: string;
+  images?: string[];
 }
 
 const ProductsAdmin = () => {
@@ -111,14 +111,49 @@ const ProductsAdmin = () => {
       setProducts(JSON.parse(savedProducts));
     } else {
       // Initialize localStorage with default products
-      localStorage.setItem('storeProducts', JSON.stringify(initialProducts));
+      const productsWithImages = initialProducts.map(product => ({
+        ...product,
+        images: [product.image, ...getRandomImages(product.id)]
+      }));
+      localStorage.setItem('storeProducts', JSON.stringify(productsWithImages));
+      setProducts(productsWithImages);
     }
   }, []);
+
+  // Helper function to get random images for each product
+  const getRandomImages = (productId: number) => {
+    const allImages = [
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+      "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
+    ];
+    
+    // Return 1-3 random images
+    return allImages
+      .filter(image => image !== initialProducts.find(p => p.id === productId)?.image)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, Math.floor(Math.random() * 3) + 1);
+  };
 
   const handleAddProduct = (newProduct: Product) => {
     // Ajout d'un nouvel ID (temporaire jusqu'à l'intégration de Supabase)
     const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
-    const productWithId = { ...newProduct, id: newId };
+    
+    // Ensure the product has an images array
+    const images = newProduct.image ? [newProduct.image] : [];
+    if (!newProduct.images || newProduct.images.length === 0) {
+      images.push(...getRandomImages(newId));
+    } else {
+      images.push(...newProduct.images);
+    }
+    
+    const productWithId = { 
+      ...newProduct, 
+      id: newId,
+      images
+    };
     
     // Update state and localStorage
     const updatedProducts = [...products, productWithId];
@@ -133,8 +168,27 @@ const ProductsAdmin = () => {
   };
 
   const handleUpdateProduct = (updatedProduct: Product) => {
+    // Ensure the product maintains its images array
+    const currentProduct = products.find(p => p.id === updatedProduct.id);
+    
+    // If the image URL changed, update the primary image and keep other images
+    const updatedImages = currentProduct?.images || [];
+    if (currentProduct?.image !== updatedProduct.image) {
+      // Replace the first image with the new primary image
+      if (updatedImages.length > 0) {
+        updatedImages[0] = updatedProduct.image;
+      } else {
+        updatedImages.push(updatedProduct.image);
+      }
+    }
+    
+    const productWithImages = {
+      ...updatedProduct,
+      images: updatedImages
+    };
+    
     const updatedProducts = products.map((p) =>
-      p.id === updatedProduct.id ? updatedProduct : p
+      p.id === updatedProduct.id ? productWithImages : p
     );
     
     // Update state and localStorage

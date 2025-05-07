@@ -1,63 +1,51 @@
 
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Flower2 } from "lucide-react";
 import ProductImageGallery from "../components/ProductImageGallery";
 import CustomWhatsAppButton from "../components/CustomWhatsAppButton";
 
-// Données temporaires (identiques à celles de Products.tsx)
-const products = [
-  {
-    id: 1,
-    name: "باقة الربيع",
-    price: 120,
-    images: [
-      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07"
-    ],
-    category: "باقات",
-    description: "باقة مميزة من الورود الصناعية المصنوعة يدويًا، تتميز بألوان الربيع الزاهية وتدوم لسنوات طويلة."
-  },
-  {
-    id: 2,
-    name: "نبتة المنزل",
-    price: 80,
-    images: [
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e"
-    ],
-    category: "نباتات",
-    description: "نبتة منزلية صناعية جميلة، سهلة العناية لا تحتاج إلى ماء أو ضوء، مثالية للمنازل والمكاتب."
-  },
-  {
-    id: 3,
-    name: "باقة الفرح",
-    price: 150,
-    images: [
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-      "https://images.unsplash.com/photo-1518495973542-4542c06a5843"
-    ],
-    category: "باقات",
-    description: "باقة مميزة للمناسبات السعيدة، مصنوعة من أجود أنواع الورود الصناعية التي تحتفظ برونقها وجمالها لفترة طويلة."
-  },
-  {
-    id: 4,
-    name: "هدية مميزة",
-    price: 200,
-    images: [
-      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-      "https://images.unsplash.com/photo-1518495973542-4542c06a5843"
-    ],
-    category: "هدايا",
-    description: "هدية فاخرة تتضمن باقة ورد صناعية مع تغليف أنيق، مناسبة للمناسبات الخاصة والأعياد."
-  }
-];
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  images?: string[];
+  category: string;
+  description: string;
+}
 
 const ProductDetail = () => {
   const { id } = useParams();
   const productId = parseInt(id || "0");
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const product = products.find(p => p.id === productId);
+  // Load product from localStorage
+  useEffect(() => {
+    const loadProduct = () => {
+      const savedProducts = localStorage.getItem('storeProducts');
+      if (savedProducts) {
+        const products = JSON.parse(savedProducts);
+        const foundProduct = products.find((p: Product) => p.id === productId);
+        setProduct(foundProduct || null);
+      }
+      setIsLoading(false);
+    };
+    
+    loadProduct();
+  }, [productId]);
+  
+  if (isLoading) {
+    return (
+      <div className="container py-12 text-center">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
   
   if (!product) {
     return (
@@ -72,6 +60,9 @@ const ProductDetail = () => {
     );
   }
   
+  // Ensure product.images exists
+  const productImages = product.images?.length ? product.images : [product.image];
+  
   return (
     <main className="min-h-screen py-8">
       <div className="container">
@@ -80,7 +71,7 @@ const ProductDetail = () => {
             {/* Product Images Gallery */}
             <div>
               <ProductImageGallery 
-                images={product.images} 
+                images={productImages} 
                 productName={product.name} 
               />
             </div>
@@ -89,7 +80,7 @@ const ProductDetail = () => {
             <div className="flex flex-col">
               <div className="mb-auto">
                 <div className="inline-block bg-floral-cream text-floral-green text-sm py-1 px-3 rounded mb-2">
-                  {product.category}
+                  {product.category || "بدون تصنيف"}
                 </div>
                 <h1 className="text-3xl font-amiri font-bold mb-4">{product.name}</h1>
                 <p className="text-gray-700 mb-4">{product.description}</p>

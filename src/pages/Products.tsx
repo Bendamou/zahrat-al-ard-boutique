@@ -3,72 +3,15 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Flower2, Clock } from "lucide-react";
 
-// Données temporaires (fallback)
-const defaultProducts = [
-  {
-    id: 1,
-    name: "باقة الربيع",
-    price: 120,
-    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-    category: "باقات"
-  },
-  {
-    id: 2,
-    name: "نبتة المنزل",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    category: "نباتات"
-  },
-  {
-    id: 3,
-    name: "باقة الفرح",
-    price: 150,
-    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-    category: "باقات"
-  },
-  {
-    id: 4,
-    name: "هدية مميزة",
-    price: 200,
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    category: "هدايا"
-  },
-  {
-    id: 5,
-    name: "باقة الصباح",
-    price: 110,
-    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-    category: "باقات"
-  },
-  {
-    id: 6,
-    name: "نبتة الظل",
-    price: 90,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    category: "نباتات"
-  },
-  {
-    id: 7,
-    name: "باقة الاحتفال",
-    price: 180,
-    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-    category: "باقات"
-  },
-  {
-    id: 8,
-    name: "هدية الحب",
-    price: 220,
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    category: "هدايا"
-  },
-  {
-    id: 9,
-    name: "وردة الصيف",
-    price: 75,
-    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
-    category: ""
-  }
-];
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+  images?: string[];
+}
 
 // Composant de carte produit avec lien de navigation
 const ProductCard = ({ id, name, price, image, category }: { 
@@ -98,25 +41,34 @@ const ProductCard = ({ id, name, price, image, category }: {
 );
 
 const Products = () => {
-  const [allProducts, setAllProducts] = useState(defaultProducts);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState(["الكل", "باقات", "نباتات", "هدايا"]);
+  const [categories, setCategories] = useState(["الكل"]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load products from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('storeProducts');
     if (savedProducts) {
-      setAllProducts(JSON.parse(savedProducts));
+      const products = JSON.parse(savedProducts);
+      setAllProducts(products);
     }
-    
-    // Load categories from localStorage
-    const savedCategories = localStorage.getItem('storeCategories');
-    if (savedCategories) {
-      const categoryList = JSON.parse(savedCategories);
-      setCategories(["الكل", ...categoryList.map((cat: any) => cat.name)]);
-    }
+    setIsLoading(false);
   }, []);
+  
+  // Extract unique categories
+  useEffect(() => {
+    const uniqueCategories = ["الكل"];
+    
+    allProducts.forEach(product => {
+      if (product.category && !uniqueCategories.includes(product.category)) {
+        uniqueCategories.push(product.category);
+      }
+    });
+    
+    setCategories(uniqueCategories);
+  }, [allProducts]);
 
   const filteredProducts = allProducts.filter((product) => {
     // Filter by category
@@ -134,6 +86,21 @@ const Products = () => {
     
     return true;
   });
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen py-8">
+        <div className="container">
+          <div className="text-center mb-8">
+            <div className="animate-pulse">
+              <div className="h-10 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen py-8">
