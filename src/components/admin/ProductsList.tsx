@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2, Eye, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
