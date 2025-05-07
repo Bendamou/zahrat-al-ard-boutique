@@ -1,42 +1,12 @@
 
 import { ArrowRight, Flower, ShoppingBag, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Hero from "../components/Hero";
 import ProductCard from "../components/ProductCard";
 import WhatsAppButton from "../components/WhatsAppButton";
 
-// Données temporaires des produits
-const featuredProducts = [
-  {
-    id: 1,
-    name: "باقة الربيع",
-    price: 120,
-    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-    category: "باقات"
-  },
-  {
-    id: 2,
-    name: "نبتة المنزل",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    category: "نباتات"
-  },
-  {
-    id: 3,
-    name: "باقة الفرح",
-    price: 150,
-    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-    category: "باقات"
-  },
-  {
-    id: 4,
-    name: "هدية مميزة",
-    price: 200,
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    category: "هدايا"
-  }
-];
-
+// Categories data
 const categories = [
   { name: "باقات الزهور", icon: Flower, count: 24 },
   { name: "النباتات المنزلية", icon: Flower, count: 18 },
@@ -45,6 +15,28 @@ const categories = [
 ];
 
 const Index = () => {
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load the 5 most recent products from localStorage
+  useEffect(() => {
+    const loadProducts = () => {
+      const savedProducts = localStorage.getItem('storeProducts');
+      if (savedProducts) {
+        const allProducts = JSON.parse(savedProducts);
+        // Sort by ID in descending order to get the most recent products
+        // (assuming higher IDs are more recent)
+        const latestProducts = [...allProducts]
+          .sort((a, b) => b.id - a.id)
+          .slice(0, 5);
+        setFeaturedProducts(latestProducts);
+      }
+      setIsLoading(false);
+    };
+    
+    loadProducts();
+  }, []);
+
   return (
     <main className="min-h-screen">
       <Hero />
@@ -129,11 +121,27 @@ const Index = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="animate-pulse">
+                  <div className="bg-gray-200 h-64 rounded-lg mb-3"></div>
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p>لا توجد منتجات متاحة حاليًا</p>
+            </div>
+          )}
         </div>
       </section>
 
