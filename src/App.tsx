@@ -4,40 +4,57 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-
-// Pages
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-
-// Admin Pages
-import Admin from "./pages/Admin";
-import DashboardAdmin from "./pages/admin/DashboardAdmin";
-import ProductsAdmin from "./pages/admin/ProductsAdmin";
-import CategoriesAdmin from "./pages/admin/CategoriesAdmin";
-import MessagesAdmin from "./pages/admin/MessagesAdmin";
-import ImagesAdmin from "./pages/admin/ImagesAdmin";
-import ThemeAdmin from "./pages/admin/ThemeAdmin";
-import LanguagesAdmin from "./pages/admin/LanguagesAdmin";
-import HomeAdmin from "./pages/admin/HomeAdmin";
-import AboutAdmin from "./pages/admin/AboutAdmin";
-import ContactAdmin from "./pages/admin/ContactAdmin";
+import { lazy, Suspense } from "react";
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-const queryClient = new QueryClient();
+// Lazy load pages
+const Index = lazy(() => import("./pages/Index"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Admin Pages
+const Admin = lazy(() => import("./pages/Admin"));
+const DashboardAdmin = lazy(() => import("./pages/admin/DashboardAdmin"));
+const ProductsAdmin = lazy(() => import("./pages/admin/ProductsAdmin"));
+const CategoriesAdmin = lazy(() => import("./pages/admin/CategoriesAdmin"));
+const MessagesAdmin = lazy(() => import("./pages/admin/MessagesAdmin"));
+const ImagesAdmin = lazy(() => import("./pages/admin/ImagesAdmin"));
+const ThemeAdmin = lazy(() => import("./pages/admin/ThemeAdmin"));
+const LanguagesAdmin = lazy(() => import("./pages/admin/LanguagesAdmin"));
+const HomeAdmin = lazy(() => import("./pages/admin/HomeAdmin"));
+const AboutAdmin = lazy(() => import("./pages/admin/AboutAdmin"));
+const ContactAdmin = lazy(() => import("./pages/admin/ContactAdmin"));
+
+// Loading component
+const Loading = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="w-12 h-12 border-4 border-floral-green rounded-full border-t-transparent animate-spin"></div>
+  </div>
+);
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 30, // 30 minutes
+    },
+  },
+});
 
 // Layout component for public pages
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
     <Navbar />
     <div className="flex-grow">
-      <Outlet />
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </div>
     <Footer />
   </div>
@@ -51,7 +68,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           {/* Admin Routes */}
-          <Route path="/admin" element={<Admin />}>
+          <Route path="/admin" element={
+            <Suspense fallback={<Loading />}>
+              <Admin />
+            </Suspense>
+          }>
             <Route path="dashboard" element={<DashboardAdmin />} />
             <Route path="products" element={<ProductsAdmin />} />
             <Route path="categories" element={<CategoriesAdmin />} />

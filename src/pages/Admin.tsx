@@ -1,19 +1,20 @@
 
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import AdminLogin from "../components/admin/AdminLogin";
 import AdminSidebar from "../components/admin/AdminSidebar";
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogin = (username: string, password: string) => {
     // Ceci est temporaire jusqu'à l'intégration de Supabase
     if (username === "admin" && password === "password") {
       setIsAuthenticated(true);
       localStorage.setItem("adminAuth", "true");
-      navigate("/admin/products");
+      navigate("/admin/dashboard");
     }
   };
 
@@ -21,8 +22,13 @@ const Admin = () => {
   useEffect(() => {
     if (localStorage.getItem("adminAuth") === "true") {
       setIsAuthenticated(true);
+      
+      // Redirect to dashboard if the user is at /admin
+      if (location.pathname === "/admin") {
+        navigate("/admin/dashboard");
+      }
     }
-  }, []);
+  }, [location, navigate]);
 
   if (!isAuthenticated) {
     return <AdminLogin onLogin={handleLogin} />;

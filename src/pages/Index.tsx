@@ -1,7 +1,7 @@
 
 import { ArrowRight, Flower, ShoppingBag, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Hero from "../components/Hero";
 import ProductCard from "../components/ProductCard";
 import WhatsAppButton from "../components/WhatsAppButton";
@@ -18,24 +18,30 @@ const Index = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load the 5 most recent products from localStorage
-  useEffect(() => {
-    const loadProducts = () => {
+  // Load the 5 most recent products from localStorage - optimized with useCallback
+  const loadProducts = useCallback(() => {
+    try {
       const savedProducts = localStorage.getItem('storeProducts');
       if (savedProducts) {
         const allProducts = JSON.parse(savedProducts);
         // Sort by ID in descending order to get the most recent products
-        // (assuming higher IDs are more recent)
         const latestProducts = [...allProducts]
           .sort((a, b) => b.id - a.id)
           .slice(0, 5);
         setFeaturedProducts(latestProducts);
       }
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
       setIsLoading(false);
-    };
-    
-    loadProducts();
+    }
   }, []);
+    
+  useEffect(() => {
+    // Add a slight delay to prevent blocking the main thread during initial render
+    const timer = setTimeout(loadProducts, 100);
+    return () => clearTimeout(timer);
+  }, [loadProducts]);
 
   return (
     <main className="min-h-screen">
