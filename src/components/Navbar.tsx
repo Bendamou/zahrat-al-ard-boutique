@@ -2,16 +2,19 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
 
   const navItems = [
-    { name: "الرئيسية", path: "/" },
-    { name: "منتجاتنا", path: "/products" },
-    { name: "من نحن", path: "/about" },
-    { name: "اتصل بنا", path: "/contact" },
+    { name: t("common", "home", "الرئيسية"), path: "/" },
+    { name: t("common", "products", "المنتجات"), path: "/products" },
+    { name: t("common", "about", "من نحن"), path: "/about" },
+    { name: t("common", "contact", "اتصل بنا"), path: "/contact" },
   ];
 
   const toggleMenu = () => {
@@ -43,6 +46,11 @@ const Navbar = () => {
             ))}
           </div>
 
+          {/* Language Switcher */}
+          <div className="hidden md:block">
+            <LanguageSwitcher />
+          </div>
+
           {/* Mobile Menu Button */}
           <button 
             className="md:hidden text-gray-700 hover:text-floral-green"
@@ -71,6 +79,9 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
+              <div className="px-4 py-2">
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
         )}

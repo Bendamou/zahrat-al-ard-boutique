@@ -5,21 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface AdminLoginProps {
-  onLogin: (username: string, password: string) => void;
+  onLogin: (email: string, password: string) => void;
 }
 
 const AdminLogin = ({ onLogin }: AdminLoginProps) => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("admin@zahrat-al-ard.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
+    setIsLoading(true);
+    setError("");
+    
+    if (!email || !password) {
       setError("Veuillez remplir tous les champs");
+      setIsLoading(false);
       return;
     }
-    onLogin(username, password);
+    
+    await onLogin(email, password);
+    setIsLoading(false);
   };
 
   return (
@@ -43,13 +50,14 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Nom d'utilisateur</label>
+            <label className="block text-sm font-medium mb-1">Email</label>
             <Input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Entrez votre nom d'utilisateur"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Entrez votre email"
               className="w-full"
+              disabled={isLoading}
             />
           </div>
 
@@ -62,6 +70,7 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Entrez votre mot de passe"
                 className="w-full"
+                disabled={isLoading}
               />
               <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             </div>
@@ -70,12 +79,13 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
           <Button 
             type="submit" 
             className="w-full bg-floral-green hover:bg-floral-green/90"
+            disabled={isLoading}
           >
-            Connexion
+            {isLoading ? "Connexion..." : "Connexion"}
           </Button>
           
           <div className="mt-4 text-center text-sm text-gray-500">
-            <p>Identifiants temporaires: admin / password</p>
+            <p>Identifiants par défaut: admin@zahrat-al-ard.com / password</p>
           </div>
         </form>
       </div>

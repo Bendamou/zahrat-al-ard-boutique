@@ -3,20 +3,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Flower2, Home, Info, Mail, Settings, ShoppingBag, User, Tag, Globe, Image, Palette, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  onLogout: () => void;
+}
+
+const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
   
   const isActive = (path: string) => {
     return location.pathname.includes(path);
   };
   
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
-    navigate("/admin");
-    window.location.reload();
-  };
-
   const menuItems = [
     { name: "Tableau de bord", path: "/admin/dashboard", icon: Home },
     { name: "Produits", path: "/admin/products", icon: ShoppingBag },
@@ -58,7 +55,7 @@ const AdminSidebar = () => {
         <Button
           variant="ghost"
           className="flex items-center w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleLogout}
+          onClick={onLogout}
         >
           <Settings size={18} className="mr-3" />
           Déconnexion

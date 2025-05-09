@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -62,41 +63,43 @@ const PublicLayout = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <Suspense fallback={<Loading />}>
-              <Admin />
-            </Suspense>
-          }>
-            <Route path="dashboard" element={<DashboardAdmin />} />
-            <Route path="products" element={<ProductsAdmin />} />
-            <Route path="categories" element={<CategoriesAdmin />} />
-            <Route path="messages" element={<MessagesAdmin />} />
-            <Route path="images" element={<ImagesAdmin />} />
-            <Route path="home" element={<HomeAdmin />} />
-            <Route path="about" element={<AboutAdmin />} />
-            <Route path="contact" element={<ContactAdmin />} />
-            <Route path="theme" element={<ThemeAdmin />} />
-            <Route path="languages" element={<LanguagesAdmin />} />
-          </Route>
+    <LanguageProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <Suspense fallback={<Loading />}>
+                <Admin />
+              </Suspense>
+            }>
+              <Route path="dashboard" element={<DashboardAdmin />} />
+              <Route path="products" element={<ProductsAdmin />} />
+              <Route path="categories" element={<CategoriesAdmin />} />
+              <Route path="messages" element={<MessagesAdmin />} />
+              <Route path="images" element={<ImagesAdmin />} />
+              <Route path="home" element={<HomeAdmin />} />
+              <Route path="about" element={<AboutAdmin />} />
+              <Route path="contact" element={<ContactAdmin />} />
+              <Route path="theme" element={<ThemeAdmin />} />
+              <Route path="languages" element={<LanguagesAdmin />} />
+            </Route>
 
-          {/* Public Routes - with simplified layout */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* Public Routes - with simplified layout */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 

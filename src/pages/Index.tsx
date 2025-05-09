@@ -1,191 +1,164 @@
 
-import { ArrowRight, Flower, ShoppingBag, Users } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
-import Hero from "../components/Hero";
-import ProductCard from "../components/ProductCard";
-import WhatsAppButton from "../components/WhatsAppButton";
-
-// Categories data
-const categories = [
-  { name: "باقات الزهور", icon: Flower, count: 24 },
-  { name: "النباتات المنزلية", icon: Flower, count: 18 },
-  { name: "هدايا", icon: ShoppingBag, count: 12 },
-  { name: "مناسبات خاصة", icon: Users, count: 8 }
-];
+import { useState, useEffect } from "react";
+import Hero from "@/components/Hero";
+import ProductCard from "@/components/ProductCard";
+import CustomWhatsAppButton from "@/components/CustomWhatsAppButton";
+import { useLanguage } from "@/contexts/LanguageContext"; 
+import { getAllProducts, getFeaturedProducts, Product } from "@/services/productService";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Load the 5 most recent products from localStorage - optimized with useCallback
-  const loadProducts = useCallback(() => {
-    try {
-      const savedProducts = localStorage.getItem('storeProducts');
-      if (savedProducts) {
-        const allProducts = JSON.parse(savedProducts);
-        // Sort by ID in descending order to get the most recent products
-        const latestProducts = [...allProducts]
-          .sort((a, b) => b.id - a.id)
-          .slice(0, 5);
-        setFeaturedProducts(latestProducts);
-      }
-    } catch (error) {
-      console.error("Error loading products:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-    
+  const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(4);
+  const { t, currentLanguage } = useLanguage();
+  const { toast } = useToast();
+
   useEffect(() => {
-    // Add a slight delay to prevent blocking the main thread during initial render
-    const timer = setTimeout(loadProducts, 100);
-    return () => clearTimeout(timer);
-  }, [loadProducts]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // First try to get featured products
+        const featured = await getFeaturedProducts();
+        setFeaturedProducts(featured);
+        
+        // Then get all products
+        const allProducts = await getAllProducts();
+        setProducts(allProducts);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Une erreur est survenue lors du chargement des produits");
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les produits",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [toast]);
+
+  const handleLoadMore = () => {
+    setVisibleCount(prevCount => prevCount + 4);
+  };
+
+  // Function to get product name based on current language
+  const getProductName = (product: Product) => {
+    if (currentLanguage === 'fr' && product.name_fr) return product.name_fr;
+    if (currentLanguage === 'en' && product.name_en) return product.name_en;
+    return product.name_ar; // Default to Arabic
+  };
+
+  // Function to get product description based on current language
+  const getProductDescription = (product: Product) => {
+    if (currentLanguage === 'fr' && product.description_fr) return product.description_fr;
+    if (currentLanguage === 'en' && product.description_en) return product.description_en;
+    return product.description_ar || ""; // Default to Arabic or empty string
+  };
+
+  // Function to get product image
+  const getProductImage = (product: Product) => {
+    if (product.images && product.images.length > 0) {
+      // Try to find primary image first
+      const primaryImage = product.images.find(img => img.is_primary);
+      if (primaryImage) return primaryImage.image_url;
+      
+      // If no primary image, return the first one
+      return product.images[0].image_url;
+    }
+    
+    // Default image if no images are available
+    return "https://images.unsplash.com/photo-1518495973542-4542c06a5843";
+  };
 
   return (
-    <main className="min-h-screen">
+    <div className="bg-floral-cream">
       <Hero />
 
-      {/* Categories Section */}
-      <section className="py-16 bg-white">
-        <div className="container">
-          <h2 className="section-title">تصفح الفئات</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            {categories.map((category, index) => (
-              <Link 
-                key={index} 
-                to="/products" 
-                className="bg-floral-lavender rounded-lg p-6 text-center transition hover:shadow-md"
-              >
-                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <category.icon className="text-floral-green" size={24} />
-                </div>
-                <h3 className="font-amiri font-bold text-lg mb-2">{category.name}</h3>
-                <p className="text-sm text-gray-600">{category.count} منتج</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Product Info Section */}
-      <section className="py-12 bg-floral-cream">
-        <div className="container">
-          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6 md:p-8">
-            <h2 className="text-2xl font-amiri font-bold mb-6 text-center text-floral-green">معلومات عن منتجاتنا</h2>
-            <div className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-4 items-start">
-                <div className="bg-floral-pink/10 p-3 rounded-full">
-                  <Flower className="text-floral-pink" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-2">باقات مصنوعة يدويًا</h3>
-                  <p className="text-gray-700">جميع باقات الورد التي نقدمها مصنوعة يدويًا باستخدام ورود صناعية عالية الجودة. هذه الورود ليست طبيعية، لكنها تتميز بمظهر رائع ويمكن أن تدوم معك لسنوات طويلة، دون أن تذبل أو تتلف.</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col md:flex-row gap-4 items-start">
-                <div className="bg-floral-green/10 p-3 rounded-full">
-                  <ShoppingBag className="text-floral-green" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-2">تصنيع حسب الطلب</h3>
-                  <p className="text-gray-700">بعد أن يقوم العميل بتقديم الطلب، نبدأ مباشرة في تصميم الباقة حسب المواصفات المطلوبة. نحن لا نقدم منتجات جاهزة، بل نصنع كل باقة بشكل خاص وفني بعد استلام الطلب.</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col md:flex-row gap-4 items-start">
-                <div className="bg-floral-green/10 p-3 rounded-full">
-                  <Users className="text-floral-green" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-2">مدة التصنيع</h3>
-                  <p className="text-gray-700">من 2 إلى 4 أيام عمل، حسب نوع وحجم الباقة.</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-8 text-center">
-              <Link to="/products" className="btn-primary">
-                اكتشف باقاتنا
-                <ArrowRight size={18} className="mr-2" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-16 bg-floral-cream/50">
-        <div className="container">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="section-title">منتجاتنا المميزة</h2>
-            <Link to="/products" className="text-floral-green font-medium hover:text-floral-pink transition flex items-center">
-              عرض الكل
-              <ArrowRight size={16} className="mr-2" />
-            </Link>
-          </div>
+      {/* Featured Products Section */}
+      {featuredProducts.length > 0 && (
+        <section className="py-16 container text-center">
+          <h2 className="section-title mx-auto">{t('common', 'featuredProducts', 'منتجاتنا المميزة')}</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-12">
+            {t('common', 'featuredProductsDescription', 'اكتشف مجموعتنا المميزة من المنتجات المختارة بعناية لك')}
+          </p>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="animate-pulse">
-                  <div className="bg-gray-200 h-64 rounded-lg mb-3"></div>
-                  <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
+            <div className="flex justify-center py-12">
+              <div className="w-12 h-12 border-4 border-floral-green rounded-full border-t-transparent animate-spin"></div>
             </div>
-          ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center py-8">{error}</div>
           ) : (
-            <div className="text-center py-8">
-              <p>لا توجد منتجات متاحة حاليًا</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {featuredProducts.slice(0, 4).map((product) => (
+                <ProductCard 
+                  key={product.id}
+                  id={product.id}
+                  name={getProductName(product)}
+                  price={product.price}
+                  image={getProductImage(product)}
+                  slug={product.slug}
+                />
+              ))}
             </div>
+          )}
+        </section>
+      )}
+
+      {/* All Products Section */}
+      <section className="py-16 bg-white">
+        <div className="container text-center">
+          <h2 className="section-title mx-auto">{t('common', 'ourProducts', 'منتجاتنا')}</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-12">
+            {t('common', 'productsDescription', 'اكتشف مجموعتنا المتنوعة من المنتجات الفريدة والمصنوعة بحرفية عالية')}
+          </p>
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-12 h-12 border-4 border-floral-green rounded-full border-t-transparent animate-spin"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center py-8">{error}</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {products.slice(0, visibleCount).map((product) => (
+                  <ProductCard 
+                    key={product.id}
+                    id={product.id}
+                    name={getProductName(product)}
+                    price={product.price}
+                    image={getProductImage(product)}
+                    slug={product.slug}
+                  />
+                ))}
+              </div>
+              
+              {visibleCount < products.length && (
+                <div className="mt-12">
+                  <button 
+                    onClick={handleLoadMore}
+                    className="btn-primary"
+                  >
+                    {t('common', 'loadMore', 'عرض المزيد')}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-16 bg-white">
-        <div className="container">
-          <h2 className="section-title mx-auto text-center">لماذا تختارنا</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            <div className="text-center p-6 rounded-lg bg-floral-cream">
-              <div className="w-16 h-16 bg-floral-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Flower className="text-floral-green" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">باقات مميزة</h3>
-              <p className="text-gray-600">باقات ورود صناعية مصنوعة يدويًا ومصممة لتدوم لسنوات طويلة</p>
-            </div>
-            
-            <div className="text-center p-6 rounded-lg bg-floral-cream">
-              <div className="w-16 h-16 bg-floral-pink/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingBag className="text-floral-pink" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">تصميم مخصص</h3>
-              <p className="text-gray-600">نصمم كل باقة بشكل مخصص بعد استلام طلبك</p>
-            </div>
-            
-            <div className="text-center p-6 rounded-lg bg-floral-cream">
-              <div className="w-16 h-16 bg-floral-green/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="text-floral-green" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">تصاميم مميزة</h3>
-              <p className="text-gray-600">تصاميم فريدة من نوعها لكل مناسبة وذوق</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <WhatsAppButton phoneNumber="+212706461139" message="مرحبا، أود الاستفسار عن المنتجات لديكم." />
-    </main>
+      <CustomWhatsAppButton />
+    </div>
   );
 };
 

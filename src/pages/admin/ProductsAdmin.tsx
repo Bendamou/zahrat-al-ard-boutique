@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,221 +6,288 @@ import { useToast } from "@/hooks/use-toast";
 import AddProductForm from "@/components/admin/AddProductForm";
 import ProductsList from "@/components/admin/ProductsList";
 import ProductSearch from "@/components/admin/ProductSearch";
-
-// Initial products data (moved to a separate constant)
-const initialProducts = [
-  {
-    id: 1,
-    name: "باقة الربيع",
-    price: 120,
-    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-    category: "باقات",
-    description: "باقة مميزة من الورود الصناعية المصنوعة يدويًا، تتميز بألوان الربيع الزاهية وتدوم لسنوات طويلة."
-  },
-  {
-    id: 2,
-    name: "نبتة المنزل",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    category: "نباتات",
-    description: "نبتة منزلية صناعية جميلة، سهلة العناية لا تحتاج إلى ماء أو ضوء، مثالية للمنازل والمكاتب."
-  },
-  {
-    id: 3,
-    name: "باقة الفرح",
-    price: 150,
-    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-    category: "باقات",
-    description: "باقة مميزة للمناسبات السعيدة، مصنوعة من أجود أنواع الورود الصناعية التي تحتفظ برونقها وجمالها لفترة طويلة."
-  },
-  {
-    id: 4,
-    name: "هدية مميزة",
-    price: 200,
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    category: "هدايا",
-    description: "هدية فاخرة تتضمن باقة ورد صناعية مع تغليف أنيق، مناسبة للمناسبات الخاصة والأعياد."
-  },
-  {
-    id: 5,
-    name: "باقة الصباح",
-    price: 110,
-    image: "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-    category: "باقات",
-    description: "باقة صباحية منعشة مصنوعة من الورود الصناعية ذات الألوان الفاتحة والمبهجة."
-  },
-  {
-    id: 6,
-    name: "نبتة الظل",
-    price: 90,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    category: "نباتات",
-    description: "نبتة صناعية مثالية للأماكن قليلة الإضاءة، تضيف لمسة من الأناقة والحيوية للمكان."
-  },
-  {
-    id: 7,
-    name: "باقة الاحتفال",
-    price: 180,
-    image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-    category: "باقات",
-    description: "باقة مميزة للاحتفالات والمناسبات الخاصة، مصممة بعناية لإضفاء البهجة."
-  },
-  {
-    id: 8,
-    name: "هدية الحب",
-    price: 220,
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    category: "هدايا",
-    description: "هدية رومانسية مميزة مع تغليف أنيق، مثالية للتعبير عن المشاعر في المناسبات الخاصة."
-  },
-  {
-    id: 9,
-    name: "وردة الصيف",
-    price: 75,
-    image: "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
-    category: "",
-    description: "وردة صناعية مميزة بألوان الصيف، مثالية للديكور المنزلي والهدايا البسيطة."
-  }
-];
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description: string;
-  images?: string[];
-}
+import { getAllProducts, deleteProduct, Product } from "@/services/productService";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProductsAdmin = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Fetch products from the database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const productsData = await getAllProducts();
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les produits",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, [toast]);
 
   // Filter products based on search query
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    product.name_ar.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (product.name_fr && product.name_fr.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (product.name_en && product.name_en.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Load products from localStorage if available
-  useEffect(() => {
-    const savedProducts = localStorage.getItem('storeProducts');
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
-    } else {
-      // Initialize localStorage with default products
-      const productsWithImages = initialProducts.map(product => ({
-        ...product,
-        images: [product.image, ...getRandomImages(product.id)]
-      }));
-      localStorage.setItem('storeProducts', JSON.stringify(productsWithImages));
-      setProducts(productsWithImages);
-    }
-  }, []);
-
-  // Helper function to get random images for each product
-  const getRandomImages = (productId: number) => {
-    const allImages = [
-      "https://images.unsplash.com/photo-1518495973542-4542c06a5843",
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-      "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-      "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-    ];
+  const handleAddProduct = async (newProduct: Product) => {
+    setIsLoading(true);
     
-    // Return 1-3 random images
-    return allImages
-      .filter(image => image !== initialProducts.find(p => p.id === productId)?.image)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, Math.floor(Math.random() * 3) + 1);
-  };
-
-  const handleAddProduct = (newProduct: Product) => {
-    // Ajout d'un nouvel ID (temporaire jusqu'à l'intégration de Supabase)
-    const newId = Math.max(0, ...products.map((p) => p.id)) + 1;
-    
-    // Ensure the product has an images array
-    const images = newProduct.image ? [newProduct.image] : [];
-    if (!newProduct.images || newProduct.images.length === 0) {
-      images.push(...getRandomImages(newId));
-    } else {
-      images.push(...newProduct.images);
-    }
-    
-    const productWithId = { 
-      ...newProduct, 
-      id: newId,
-      images
-    };
-    
-    // Update state and localStorage
-    const updatedProducts = [...products, productWithId];
-    setProducts(updatedProducts);
-    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
-    
-    toast({
-      title: "Produit ajouté",
-      description: `${newProduct.name} a été ajouté avec succès.`,
-    });
-    setShowAddForm(false);
-  };
-
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    // Ensure the product maintains its images array
-    const currentProduct = products.find(p => p.id === updatedProduct.id);
-    
-    // If the image URL changed, update the primary image and keep other images
-    const updatedImages = currentProduct?.images || [];
-    if (currentProduct?.image !== updatedProduct.image) {
-      // Replace the first image with the new primary image
-      if (updatedImages.length > 0) {
-        updatedImages[0] = updatedProduct.image;
-      } else {
-        updatedImages.push(updatedProduct.image);
+    try {
+      // Insert the product
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .insert({
+          name_ar: newProduct.name_ar,
+          name_fr: newProduct.name_fr || null,
+          name_en: newProduct.name_en || null,
+          description_ar: newProduct.description_ar || null,
+          description_fr: newProduct.description_fr || null,
+          description_en: newProduct.description_en || null,
+          price: newProduct.price,
+          slug: newProduct.slug || generateSlug(newProduct.name_ar),
+          is_available: true,
+          is_featured: newProduct.is_featured || false
+        })
+        .select()
+        .single();
+        
+      if (productError) {
+        throw productError;
       }
+      
+      // Add product image if provided
+      if (newProduct.images && newProduct.images.length > 0) {
+        for (const image of newProduct.images) {
+          await supabase
+            .from("product_images")
+            .insert({
+              product_id: productData.id,
+              image_url: image.image_url,
+              is_primary: image.is_primary || false
+            });
+        }
+      }
+      
+      // Add categories if provided
+      if (newProduct.categories && newProduct.categories.length > 0) {
+        for (const category of newProduct.categories) {
+          await supabase
+            .from("product_categories")
+            .insert({
+              product_id: productData.id,
+              category_id: category.id
+            });
+        }
+      }
+      
+      toast({
+        title: "Produit ajouté",
+        description: `${newProduct.name_ar} a été ajouté avec succès.`,
+      });
+      
+      // Refresh products list
+      const updatedProducts = await getAllProducts();
+      setProducts(updatedProducts);
+      
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le produit",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    const productWithImages = {
-      ...updatedProduct,
-      images: updatedImages
-    };
-    
-    const updatedProducts = products.map((p) =>
-      p.id === updatedProduct.id ? productWithImages : p
-    );
-    
-    // Update state and localStorage
-    setProducts(updatedProducts);
-    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
-    
-    toast({
-      title: "Produit mis à jour",
-      description: `${updatedProduct.name} a été mis à jour avec succès.`,
-    });
-    setEditingProduct(null);
-    setShowAddForm(false);
   };
 
-  const handleDeleteProduct = (id: number) => {
-    const productName = products.find(p => p.id === id)?.name;
-    const updatedProducts = products.filter((p) => p.id !== id);
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    setIsLoading(true);
     
-    // Update state and localStorage
-    setProducts(updatedProducts);
-    localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
+    try {
+      // Update the product
+      const { error: productError } = await supabase
+        .from("products")
+        .update({
+          name_ar: updatedProduct.name_ar,
+          name_fr: updatedProduct.name_fr || null,
+          name_en: updatedProduct.name_en || null,
+          description_ar: updatedProduct.description_ar || null,
+          description_fr: updatedProduct.description_fr || null,
+          description_en: updatedProduct.description_en || null,
+          price: updatedProduct.price,
+          slug: updatedProduct.slug,
+          is_available: updatedProduct.is_available !== undefined ? updatedProduct.is_available : true,
+          is_featured: updatedProduct.is_featured !== undefined ? updatedProduct.is_featured : false
+        })
+        .eq("id", updatedProduct.id);
+        
+      if (productError) {
+        throw productError;
+      }
+      
+      // Update images if provided
+      if (updatedProduct.images && updatedProduct.images.length > 0) {
+        // First remove existing images
+        await supabase
+          .from("product_images")
+          .delete()
+          .eq("product_id", updatedProduct.id);
+          
+        // Then add new images
+        for (const image of updatedProduct.images) {
+          await supabase
+            .from("product_images")
+            .insert({
+              product_id: updatedProduct.id,
+              image_url: image.image_url,
+              is_primary: image.is_primary || false
+            });
+        }
+      }
+      
+      // Update categories if provided
+      if (updatedProduct.categories) {
+        // First remove existing category associations
+        await supabase
+          .from("product_categories")
+          .delete()
+          .eq("product_id", updatedProduct.id);
+          
+        // Then add new categories
+        if (updatedProduct.categories.length > 0) {
+          for (const category of updatedProduct.categories) {
+            await supabase
+              .from("product_categories")
+              .insert({
+                product_id: updatedProduct.id,
+                category_id: category.id
+              });
+          }
+        }
+      }
+      
+      toast({
+        title: "Produit mis à jour",
+        description: `${updatedProduct.name_ar} a été mis à jour avec succès.`,
+      });
+      
+      // Refresh products list
+      const updatedProducts = await getAllProducts();
+      setProducts(updatedProducts);
+      
+      setEditingProduct(null);
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le produit",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    setIsLoading(true);
     
-    toast({
-      title: "Produit supprimé",
-      description: `${productName} a été supprimé avec succès.`,
-    });
+    try {
+      const productName = products.find(p => p.id === id)?.name_ar;
+      const success = await deleteProduct(id);
+      
+      if (!success) {
+        throw new Error("Failed to delete product");
+      }
+      
+      toast({
+        title: "Produit supprimé",
+        description: `${productName} a été supprimé avec succès.`,
+      });
+      
+      // Update local state
+      setProducts(products.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le produit",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditClick = (product: Product) => {
     setEditingProduct(product);
     setShowAddForm(true);
+  };
+
+  // Helper function to generate a slug from a name
+  const generateSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+      .trim();
+  };
+
+  // Function to toggle featured status
+  const handleToggleFeatured = async (product: Product) => {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ is_featured: !product.is_featured })
+        .eq("id", product.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: product.is_featured ? "Produit retiré de la mise en avant" : "Produit mis en avant",
+        description: `${product.name_ar} a été ${product.is_featured ? "retiré de" : "ajouté à"} la mise en avant.`,
+      });
+      
+      // Update local state
+      setProducts(products.map(p => 
+        p.id === product.id 
+          ? { ...p, is_featured: !p.is_featured } 
+          : p
+      ));
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut de mise en avant",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -232,6 +300,7 @@ const ProductsAdmin = () => {
             setShowAddForm(true);
           }}
           className="bg-floral-green hover:bg-floral-green/90"
+          disabled={isLoading}
         >
           <Plus className="mr-2" size={16} /> Ajouter un produit
         </Button>
@@ -245,6 +314,7 @@ const ProductsAdmin = () => {
             setEditingProduct(null);
           }}
           initialData={editingProduct || undefined}
+          isLoading={isLoading}
         />
       ) : (
         <>
@@ -252,11 +322,18 @@ const ProductsAdmin = () => {
             searchQuery={searchQuery} 
             onSearchChange={setSearchQuery} 
           />
-          <ProductsList 
-            products={filteredProducts} 
-            onEditProduct={handleEditClick} 
-            onDeleteProduct={handleDeleteProduct} 
-          />
+          {isLoading && products.length === 0 ? (
+            <div className="flex justify-center py-12">
+              <div className="w-12 h-12 border-4 border-floral-green rounded-full border-t-transparent animate-spin"></div>
+            </div>
+          ) : (
+            <ProductsList 
+              products={filteredProducts} 
+              onEditProduct={handleEditClick} 
+              onDeleteProduct={handleDeleteProduct}
+              onToggleFeatured={handleToggleFeatured} 
+            />
+          )}
         </>
       )}
     </div>

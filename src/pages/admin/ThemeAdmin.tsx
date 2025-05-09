@@ -1,88 +1,213 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Palette, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-// Données temporaires pour les couleurs par défaut
-const defaultTheme = {
-  primary: {
-    name: "Vert floral (principal)",
-    color: "#3a7563",
-    variable: "--floral-green"
-  },
-  secondary: {
-    name: "Rose floral (secondaire)",
-    color: "#e07a7a",
-    variable: "--floral-pink"
-  },
-  accent: {
-    name: "Crème floral (accent)",
-    color: "#f6f2e4",
-    variable: "--floral-cream"
-  },
-  background: {
-    name: "Arrière-plan",
-    color: "#ffffff",
-    variable: "--background"
-  },
-  text: {
-    name: "Texte principal",
-    color: "#333333",
-    variable: "--text-primary"
-  },
-  button: {
-    name: "Texte de bouton",
-    color: "#ffffff",
-    variable: "--button-text"
-  },
-  border: {
-    name: "Bordures",
-    color: "#e5e5e5",
-    variable: "--border-color"
-  }
-};
+interface ThemeColor {
+  name: string;
+  color: string;
+  variable: string;
+  key: string;
+}
 
 const ThemeAdmin = () => {
-  const [theme, setTheme] = useState(defaultTheme);
+  const [theme, setTheme] = useState<Record<string, ThemeColor>>({});
+  const [defaultTheme, setDefaultTheme] = useState<Record<string, ThemeColor>>({});
   const [activeTab, setActiveTab] = useState("colors");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleColorChange = (key: keyof typeof theme, value: string) => {
-    setTheme({
-      ...theme,
-      [key]: {
-        ...theme[key],
-        color: value
+  // Fetch theme settings from database
+  useEffect(() => {
+    const fetchThemeSettings = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("theme_settings")
+          .select("*");
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          const themeData: Record<string, ThemeColor> = {
+            primary: {
+              name: "Vert floral (principal)",
+              color: "#3a7563",
+              variable: "--floral-green",
+              key: "primary-color"
+            },
+            secondary: {
+              name: "Rose floral (secondaire)",
+              color: "#e07a7a",
+              variable: "--floral-pink",
+              key: "secondary-color"
+            },
+            accent: {
+              name: "Crème floral (accent)",
+              color: "#f6f2e4",
+              variable: "--floral-cream",
+              key: "accent-color"
+            },
+            background: {
+              name: "Arrière-plan",
+              color: "#ffffff",
+              variable: "--background",
+              key: "background-color"
+            },
+            text: {
+              name: "Texte principal",
+              color: "#333333",
+              variable: "--text-primary",
+              key: "text-color"
+            },
+            button: {
+              name: "Texte de bouton",
+              color: "#ffffff",
+              variable: "--button-text",
+              key: "button-text-color"
+            },
+            border: {
+              name: "Bordures",
+              color: "#e5e5e5",
+              variable: "--border-color",
+              key: "border-color"
+            }
+          };
+
+          // Update with values from database
+          data.forEach(item => {
+            const key = item.key;
+            const entry = Object.values(themeData).find(color => color.key === key);
+            
+            if (entry) {
+              const themeKey = Object.keys(themeData).find(k => themeData[k].key === key);
+              if (themeKey) {
+                themeData[themeKey].color = item.value;
+              }
+            }
+          });
+          
+          setTheme(themeData);
+          setDefaultTheme({...themeData});
+          
+          // Apply theme to the document
+          applyThemeToDocument(themeData);
+        }
+      } catch (error) {
+        console.error("Error fetching theme settings:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les paramètres du thème",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
+    };
+    
+    fetchThemeSettings();
+  }, []);
+
+  const applyThemeToDocument = (themeData: Record<string, ThemeColor>) => {
+    Object.values(themeData).forEach(colorItem => {
+      document.documentElement.style.setProperty(colorItem.variable, colorItem.color);
     });
   };
 
-  const handleSaveChanges = () => {
-    // Cette fonction serait implémentée avec la BD pour sauvegarder les couleurs
-    // Pour l'instant, on affiche juste un toast de confirmation
-    toast({
-      title: "Thème mis à jour",
-      description: "Les changements ont été appliqués avec succès."
+  const handleColorChange = (key: string, value: string) => {
+    setTheme(prev => {
+      const newTheme = {...prev};
+      newTheme[key].color = value;
+      return newTheme;
     });
   };
 
-  const handleResetTheme = () => {
-    setTheme(defaultTheme);
-    toast({
-      title: "Thème réinitialisé",
-      description: "Les couleurs par défaut ont été restaurées."
-    });
+  const handleSaveChanges = async () => {
+    setIsLoading(true);
+    try {
+      // Update each color in database
+      for (const colorKey in theme) {
+        const colorItem = theme[colorKey];
+        
+        await supabase
+          .from("theme_settings")
+          .update({ value: colorItem.color })
+          .eq("key", colorItem.key);
+      }
+      
+      // Apply theme to document
+      applyThemeToDocument(theme);
+      
+      toast({
+        title: "Thème mis à jour",
+        description: "Les changements ont été appliqués avec succès."
+      });
+    } catch (error) {
+      console.error("Error saving theme settings:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les paramètres du thème",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleResetTheme = async () => {
+    setIsLoading(true);
+    try {
+      setTheme({...defaultTheme});
+      
+      // Update database with default values
+      for (const colorKey in defaultTheme) {
+        const colorItem = defaultTheme[colorKey];
+        
+        await supabase
+          .from("theme_settings")
+          .update({ value: colorItem.color })
+          .eq("key", colorItem.key);
+      }
+      
+      // Apply theme to document
+      applyThemeToDocument(defaultTheme);
+      
+      toast({
+        title: "Thème réinitialisé",
+        description: "Les couleurs par défaut ont été restaurées."
+      });
+    } catch (error) {
+      console.error("Error resetting theme:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de réinitialiser le thème",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && Object.keys(theme).length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-12 h-12 border-4 border-floral-green rounded-full border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Thème et Couleurs</h1>
-        <Button variant="outline" onClick={handleResetTheme}>
+        <Button variant="outline" onClick={handleResetTheme} disabled={isLoading}>
           <RefreshCw size={16} className="mr-2" />
           Réinitialiser
         </Button>
@@ -121,8 +246,9 @@ const ThemeAdmin = () => {
                       id={`color-${key}`}
                       type="color"
                       value={color.color}
-                      onChange={(e) => handleColorChange(key as keyof typeof theme, e.target.value)}
+                      onChange={(e) => handleColorChange(key, e.target.value)}
                       className="w-full h-8"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -134,20 +260,20 @@ const ThemeAdmin = () => {
             <h2 className="text-lg font-semibold mb-4">Aperçu du thème</h2>
             
             <div className="space-y-6">
-              <div className="p-4 rounded" style={{ backgroundColor: theme.background.color }}>
-                <h3 className="text-xl font-bold mb-2" style={{ color: theme.text.color }}>
+              <div className="p-4 rounded" style={{ backgroundColor: theme.background?.color || "#ffffff" }}>
+                <h3 className="text-xl font-bold mb-2" style={{ color: theme.text?.color || "#333333" }}>
                   Exemple de titre
                 </h3>
-                <p className="mb-4" style={{ color: theme.text.color }}>
+                <p className="mb-4" style={{ color: theme.text?.color || "#333333" }}>
                   Voici un exemple de texte pour montrer comment les couleurs s'appliquent sur votre site.
                 </p>
                 
                 <div className="flex gap-2">
                   <Button 
                     style={{ 
-                      backgroundColor: theme.primary.color, 
-                      color: theme.button.color,
-                      borderColor: theme.border.color 
+                      backgroundColor: theme.primary?.color || "#3a7563", 
+                      color: theme.button?.color || "#ffffff",
+                      borderColor: theme.border?.color || "#e5e5e5"
                     }}
                   >
                     Bouton principal
@@ -156,8 +282,8 @@ const ThemeAdmin = () => {
                   <Button 
                     variant="outline"
                     style={{ 
-                      color: theme.primary.color,
-                      borderColor: theme.primary.color 
+                      color: theme.primary?.color || "#3a7563",
+                      borderColor: theme.primary?.color || "#3a7563"
                     }}
                   >
                     Bouton secondaire
@@ -167,9 +293,9 @@ const ThemeAdmin = () => {
               
               <div 
                 className="p-4 rounded" 
-                style={{ backgroundColor: theme.accent.color }}
+                style={{ backgroundColor: theme.accent?.color || "#f6f2e4" }}
               >
-                <p style={{ color: theme.text.color }}>
+                <p style={{ color: theme.text?.color || "#333333" }}>
                   Ceci est un exemple de section avec la couleur d'accent.
                 </p>
               </div>
@@ -177,8 +303,12 @@ const ThemeAdmin = () => {
           </div>
           
           <div className="flex justify-end">
-            <Button onClick={handleSaveChanges} className="bg-floral-green hover:bg-floral-green/90">
-              Enregistrer les changements
+            <Button 
+              onClick={handleSaveChanges} 
+              className="bg-floral-green hover:bg-floral-green/90"
+              disabled={isLoading}
+            >
+              {isLoading ? "Enregistrement en cours..." : "Enregistrer les changements"}
             </Button>
           </div>
         </TabsContent>
