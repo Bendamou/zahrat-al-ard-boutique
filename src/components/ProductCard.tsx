@@ -3,16 +3,17 @@ import { Link } from "react-router-dom";
 import { ShoppingBag } from "lucide-react";
 
 interface ProductCardProps {
-  id: number;
+  id: string | number; // Modified to accept string or number
   name: string;
   price: number;
   image: string;
-  category: string;
+  category?: string; // Made optional
+  slug?: string; // Added slug as optional
 }
 
-const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, image, category, slug }: ProductCardProps) => {
   return (
-    <Link to={`/products/${id}`} className="product-card group block">
+    <Link to={`/products/${slug || id}`} className="product-card group block">
       <div className="relative overflow-hidden">
         <img
           src={image}
@@ -20,9 +21,11 @@ const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => 
           className="w-full h-64 object-cover transition duration-500 group-hover:scale-105"
           loading="lazy"
         />
-        <div className="absolute top-3 right-3 bg-floral-green text-white text-xs py-1 px-2 rounded">
-          {category}
-        </div>
+        {category && (
+          <div className="absolute top-3 right-3 bg-floral-green text-white text-xs py-1 px-2 rounded">
+            {category}
+          </div>
+        )}
         <div className="absolute top-3 left-3 bg-floral-pink text-white text-xs py-1 px-2 rounded">
           صناعية
         </div>
