@@ -78,6 +78,16 @@ const Index = () => {
     return "https://images.unsplash.com/photo-1518495973542-4542c06a5843";
   };
 
+  // Function to get the first category name
+  const getProductCategory = (product: Product) => {
+    if (product.categories && product.categories.length > 0) {
+      if (currentLanguage === 'fr') return product.categories[0].name_fr;
+      if (currentLanguage === 'en') return product.categories[0].name_en;
+      return product.categories[0].name_ar;
+    }
+    return undefined;
+  };
+
   return (
     <div className="bg-floral-cream">
       <Hero />
@@ -105,6 +115,7 @@ const Index = () => {
                   name={getProductName(product)}
                   price={product.price}
                   image={getProductImage(product)}
+                  category={getProductCategory(product)}
                   slug={product.slug}
                 />
               ))}
@@ -137,6 +148,7 @@ const Index = () => {
                     name={getProductName(product)}
                     price={product.price}
                     image={getProductImage(product)}
+                    category={getProductCategory(product)}
                     slug={product.slug}
                   />
                 ))}
@@ -158,7 +170,7 @@ const Index = () => {
       </section>
 
       <CustomWhatsAppButton 
-        phoneNumber="966500000000" 
+        phoneNumber="212706461139" 
         defaultMessage="مرحبا، أود الاستفسار عن منتجاتكم" 
       />
     </div>

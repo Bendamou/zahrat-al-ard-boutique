@@ -2,86 +2,112 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, Flower2, Clock } from "lucide-react";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description: string;
-  images?: string[];
-}
-
-// Composant de carte produit avec lien de navigation
-const ProductCard = ({ id, name, price, image, category }: { 
-  id: number, 
-  name: string, 
-  price: number, 
-  image: string, 
-  category: string 
-}) => (
-  <Link to={`/products/${id}`} className="group">
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full">
-      <div className="aspect-square overflow-hidden">
-        <img 
-          src={image} 
-          alt={name} 
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-      </div>
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-1 text-floral-green">{name}</h3>
-        {category && <span className="text-xs bg-floral-cream text-floral-green px-2 py-1 rounded-full">{category}</span>}
-        <p className="mt-2 font-bold text-floral-pink text-xl">{price} ﷼</p>
-      </div>
-    </div>
-  </Link>
-);
+import { getAllProducts, Product } from "@/services/productService";
+import ProductCard from "@/components/ProductCard";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Products = () => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState(["الكل"]);
+  const [categories, setCategories] = useState<string[]>(["الكل"]);
   const [isLoading, setIsLoading] = useState(true);
+  const { currentLanguage } = useLanguage();
+  const { toast } = useToast();
 
-  // Load products from localStorage
+  // Load products from Supabase
   useEffect(() => {
-    const savedProducts = localStorage.getItem('storeProducts');
-    if (savedProducts) {
-      const products = JSON.parse(savedProducts);
-      setAllProducts(products);
-    }
-    setIsLoading(false);
-  }, []);
-  
-  // Extract unique categories
-  useEffect(() => {
-    const uniqueCategories = ["الكل"];
-    
-    allProducts.forEach(product => {
-      if (product.category && !uniqueCategories.includes(product.category)) {
-        uniqueCategories.push(product.category);
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const productsData = await getAllProducts();
+        setProducts(productsData);
+        
+        // Extract unique categories
+        const uniqueCategories = ["الكل"];
+        const processedCategories = new Set();
+        
+        productsData.forEach(product => {
+          if (product.categories && product.categories.length > 0) {
+            product.categories.forEach(category => {
+              const categoryName = currentLanguage === 'fr' 
+                ? category.name_fr 
+                : currentLanguage === 'en' 
+                  ? category.name_en 
+                  : category.name_ar;
+                  
+              if (categoryName && !processedCategories.has(category.id)) {
+                uniqueCategories.push(categoryName);
+                processedCategories.add(category.id);
+              }
+            });
+          }
+        });
+        
+        setCategories(uniqueCategories);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les produits",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
     
-    setCategories(uniqueCategories);
-  }, [allProducts]);
+    fetchProducts();
+  }, [currentLanguage, toast]);
 
-  const filteredProducts = allProducts.filter((product) => {
+  // Function to get product name based on current language
+  const getProductName = (product: Product) => {
+    if (currentLanguage === 'fr' && product.name_fr) return product.name_fr;
+    if (currentLanguage === 'en' && product.name_en) return product.name_en;
+    return product.name_ar; // Default to Arabic
+  };
+
+  // Function to get product image
+  const getProductImage = (product: Product) => {
+    if (product.images && product.images.length > 0) {
+      // Try to find primary image first
+      const primaryImage = product.images.find(img => img.is_primary);
+      if (primaryImage) return primaryImage.image_url;
+      
+      // If no primary image, return the first one
+      return product.images[0].image_url;
+    }
+    
+    // Default image if no images are available
+    return "https://images.unsplash.com/photo-1518495973542-4542c06a5843";
+  };
+
+  // Function to get the first category name
+  const getProductCategory = (product: Product) => {
+    if (product.categories && product.categories.length > 0) {
+      if (currentLanguage === 'fr') return product.categories[0].name_fr;
+      if (currentLanguage === 'en') return product.categories[0].name_en;
+      return product.categories[0].name_ar;
+    }
+    return undefined;
+  };
+
+  const filteredProducts = products.filter((product) => {
     // Filter by category
-    if (activeCategory !== "الكل" && product.category !== activeCategory) {
-      return false;
+    if (activeCategory !== "الكل") {
+      const productCategory = getProductCategory(product);
+      if (productCategory !== activeCategory) {
+        return false;
+      }
     }
     
     // Filter by search query
-    if (
-      searchQuery &&
-      !product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false;
+    if (searchQuery) {
+      const name = getProductName(product).toLowerCase();
+      if (!name.includes(searchQuery.toLowerCase())) {
+        return false;
+      }
     }
     
     return true;
@@ -167,7 +193,15 @@ const Products = () => {
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+              <ProductCard 
+                key={product.id}
+                id={product.id}
+                name={getProductName(product)}
+                price={product.price}
+                image={getProductImage(product)}
+                category={getProductCategory(product)}
+                slug={product.slug}
+              />
             ))}
           </div>
         ) : (

@@ -18,6 +18,12 @@ const CustomWhatsAppButton = ({
   const [customMessage, setCustomMessage] = useState("");
 
   const handleWhatsAppClick = () => {
+    // Format phone number: remove any non-digit characters except the plus sign
+    const formattedPhone = phoneNumber.replace(/[^\d+]/g, ""); 
+    
+    // Add "+" if it doesn't exist at the beginning
+    const finalPhone = formattedPhone.startsWith("+") ? formattedPhone : `+${formattedPhone}`;
+    
     const baseMessage = productName
       ? `${defaultMessage} (${productName})`
       : defaultMessage;
@@ -27,7 +33,7 @@ const CustomWhatsAppButton = ({
       : baseMessage;
     
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, "_blank");
   };

@@ -1,38 +1,53 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, X, Plus } from "lucide-react";
-import { Product } from "@/services/productService";
+import { Product, Category } from "@/services/productService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddProductFormProps {
-  onSubmit: (product: any) => void;  // Using any type to resolve type conflicts
+  onSubmit: (product: any) => void;
   onCancel: () => void;
-  initialData?: any;  // Using any type to resolve type conflicts
+  initialData?: any;
   isLoading?: boolean;
 }
 
 const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: AddProductFormProps) => {
   const [formData, setFormData] = useState<any>({
-    name: "",
+    name_ar: "",
+    name_fr: "",
+    name_en: "",
     price: 0,
     image: "",
     category: "",
-    description: "",
-    images: []
+    description_ar: "",
+    description_fr: "",
+    description_en: "",
+    images: [],
+    categories: []
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  // Load categories from localStorage
+  // Load categories from Supabase
   useEffect(() => {
-    const savedCategories = localStorage.getItem('storeCategories');
-    if (savedCategories) {
-      const categoryData = JSON.parse(savedCategories);
-      setCategories(categoryData.map((cat: any) => cat.name));
-    }
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+      
+      if (data && !error) {
+        setCategories(data);
+      } else {
+        console.error("Erreur lors du chargement des catégories:", error);
+      }
+    };
+    
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -40,7 +55,11 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       setFormData({
         ...initialData,
         // Ensure images is always an array
-        images: initialData.images || []
+        images: initialData.images || [],
+        // Ensure category is set if there are categories
+        category: initialData.categories && initialData.categories.length > 0 
+          ? initialData.categories[0].id 
+          : ""
       });
     }
   }, [initialData]);
@@ -87,7 +106,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
   };
   
   const handleRemoveImage = (index: number) => {
-    const updatedImages = formData.images?.filter((_, i) => i !== index) || [];
+    const updatedImages = formData.images?.filter((_, i: number) => i !== index) || [];
     setFormData({
       ...formData,
       images: updatedImages
@@ -97,20 +116,20 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.name?.trim()) {
-      newErrors.name = "Le nom est obligatoire";
+    if (!formData.name_ar?.trim()) {
+      newErrors.name_ar = "Le nom en arabe est obligatoire";
     }
     
     if (formData.price <= 0) {
       newErrors.price = "Le prix doit être supérieur à zéro";
     }
     
-    if (!formData.image?.trim() && (!formData.images || formData.images.length === 0)) {
-      newErrors.image = "Une image principale est requise";
+    if (!formData.description_ar?.trim()) {
+      newErrors.description_ar = "La description en arabe est obligatoire";
     }
     
-    if (!formData.description?.trim()) {
-      newErrors.description = "La description est obligatoire";
+    if (!formData.image?.trim() && (!formData.images || formData.images.length === 0)) {
+      newErrors.image = "Une image principale est requise";
     }
     
     setErrors(newErrors);
@@ -124,13 +143,38 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       return;
     }
     
-    // If we have an image but no images array, make sure the image is the first element of images
+    // Prepare product data for submission
     let productToSubmit = { ...formData };
+    
+    // If we have an image but no images array, make sure the image is added to images
     if (formData.image && (!formData.images || formData.images.length === 0)) {
       productToSubmit.images = [formData.image];
     }
     
+    // If category is selected, prepare it for the categories array
+    if (formData.category) {
+      const selectedCategory = categories.find(cat => cat.id === formData.category);
+      if (selectedCategory) {
+        productToSubmit.categories = [selectedCategory];
+      }
+    }
+    
+    // Generate a slug if not provided
+    if (!productToSubmit.slug) {
+      productToSubmit.slug = generateSlug(productToSubmit.name_ar || "");
+    }
+    
     onSubmit(productToSubmit);
+  };
+
+  // Helper function to generate a slug from a name
+  const generateSlug = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+      .trim();
   };
 
   return (
@@ -141,6 +185,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
           size="sm" 
           className="mr-2"
           onClick={onCancel}
+          disabled={isLoading}
         >
           <ArrowLeft size={16} />
         </Button>
@@ -150,23 +195,45 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Product Name Field */}
+        {/* Product Name Fields */}
         <div>
-          <Label htmlFor="name">Nom du produit</Label>
+          <Label htmlFor="name_ar">Nom du produit (Arabe) *</Label>
           <Input
-            id="name"
-            name="name"
-            value={formData.name || ""}
+            id="name_ar"
+            name="name_ar"
+            value={formData.name_ar || ""}
+            onChange={handleChange}
+            placeholder="أدخل اسم المنتج"
+            className={errors.name_ar ? "border-red-500" : ""}
+          />
+          {errors.name_ar && <p className="text-red-500 text-sm mt-1">{errors.name_ar}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="name_fr">Nom du produit (Français)</Label>
+          <Input
+            id="name_fr"
+            name="name_fr"
+            value={formData.name_fr || ""}
             onChange={handleChange}
             placeholder="Entrez le nom du produit"
-            className={errors.name ? "border-red-500" : ""}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="name_en">Nom du produit (Anglais)</Label>
+          <Input
+            id="name_en"
+            name="name_en"
+            value={formData.name_en || ""}
+            onChange={handleChange}
+            placeholder="Enter product name"
+          />
         </div>
         
         {/* Category Field */}
         <div>
-          <Label htmlFor="category">Catégorie (optionnelle)</Label>
+          <Label htmlFor="category">Catégorie</Label>
           <select
             id="category"
             name="category"
@@ -176,8 +243,8 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
           >
             <option value="">-- Aucune catégorie --</option>
             {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+              <option key={category.id} value={category.id}>
+                {category.name_ar}
               </option>
             ))}
           </select>
@@ -185,7 +252,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
         
         {/* Price Field */}
         <div>
-          <Label htmlFor="price">Prix (﷼)</Label>
+          <Label htmlFor="price">Prix (﷼) *</Label>
           <Input
             id="price"
             name="price"
@@ -201,7 +268,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
         
         {/* Image Field with Preview */}
         <div>
-          <Label htmlFor="image">Image principale</Label>
+          <Label htmlFor="image">Image</Label>
           <div className="flex gap-2">
             <Input
               id="image"
@@ -234,6 +301,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
                     src={img}
                     alt={`Image ${index + 1}`}
                     className="w-full h-24 object-cover border rounded"
+                    loading="lazy"
                   />
                   <button
                     type="button"
@@ -261,19 +329,43 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
           </div>
         )}
         
-        {/* Description Field */}
+        {/* Description Fields */}
         <div>
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description_ar">Description (Arabe) *</Label>
           <Textarea
-            id="description"
-            name="description"
-            value={formData.description || ""}
+            id="description_ar"
+            name="description_ar"
+            value={formData.description_ar || ""}
+            onChange={handleChange}
+            placeholder="أدخل وصف المنتج..."
+            rows={4}
+            className={errors.description_ar ? "border-red-500" : ""}
+          />
+          {errors.description_ar && <p className="text-red-500 text-sm mt-1">{errors.description_ar}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="description_fr">Description (Français)</Label>
+          <Textarea
+            id="description_fr"
+            name="description_fr"
+            value={formData.description_fr || ""}
             onChange={handleChange}
             placeholder="Entrez une description du produit..."
             rows={4}
-            className={errors.description ? "border-red-500" : ""}
           />
-          {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="description_en">Description (Anglais)</Label>
+          <Textarea
+            id="description_en"
+            name="description_en"
+            value={formData.description_en || ""}
+            onChange={handleChange}
+            placeholder="Enter product description..."
+            rows={4}
+          />
         </div>
         
         {/* Form Actions */}

@@ -4,37 +4,31 @@ import { useParams } from "react-router-dom";
 import { Flower2 } from "lucide-react";
 import ProductImageGallery from "../components/ProductImageGallery";
 import CustomWhatsAppButton from "../components/CustomWhatsAppButton";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  images?: string[];
-  category: string;
-  description: string;
-}
+import { getProductBySlug, Product } from "@/services/productService";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const productId = parseInt(id || "0");
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load product from localStorage
+  // Load product from Supabase using slug or id
   useEffect(() => {
-    const loadProduct = () => {
-      const savedProducts = localStorage.getItem('storeProducts');
-      if (savedProducts) {
-        const products = JSON.parse(savedProducts);
-        const foundProduct = products.find((p: Product) => p.id === productId);
-        setProduct(foundProduct || null);
+    const loadProduct = async () => {
+      setIsLoading(true);
+      try {
+        // Try to fetch the product using the ID as slug
+        const fetchedProduct = await getProductBySlug(id || "");
+        setProduct(fetchedProduct);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setProduct(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     
     loadProduct();
-  }, [productId]);
+  }, [id]);
   
   if (isLoading) {
     return (
@@ -60,8 +54,12 @@ const ProductDetail = () => {
     );
   }
   
-  // Ensure product.images exists
-  const productImages = product.images?.length ? product.images : [product.image];
+  // Get primary image or first image
+  const primaryImage = product.images?.find(img => img.is_primary);
+  const mainImage = primaryImage?.image_url || (product.images && product.images.length > 0 ? product.images[0].image_url : "");
+  
+  // Prepare all images for gallery
+  const productImages = product.images?.map(img => img.image_url) || [mainImage];
   
   return (
     <main className="min-h-screen py-8">
@@ -72,18 +70,20 @@ const ProductDetail = () => {
             <div>
               <ProductImageGallery 
                 images={productImages} 
-                productName={product.name} 
+                productName={product.name_ar} 
               />
             </div>
             
             {/* Product Info */}
             <div className="flex flex-col">
               <div className="mb-auto">
-                <div className="inline-block bg-floral-cream text-floral-green text-sm py-1 px-3 rounded mb-2">
-                  {product.category || "بدون تصنيف"}
-                </div>
-                <h1 className="text-3xl font-amiri font-bold mb-4">{product.name}</h1>
-                <p className="text-gray-700 mb-4">{product.description}</p>
+                {product.categories && product.categories.length > 0 && (
+                  <div className="inline-block bg-floral-cream text-floral-green text-sm py-1 px-3 rounded mb-2">
+                    {product.categories[0].name_ar}
+                  </div>
+                )}
+                <h1 className="text-3xl font-amiri font-bold mb-4">{product.name_ar}</h1>
+                <p className="text-gray-700 mb-4">{product.description_ar}</p>
                 
                 <div className="text-2xl font-bold text-floral-green mb-6">
                   {product.price} ﷼
@@ -114,9 +114,9 @@ const ProductDetail = () => {
               
               {/* Custom WhatsApp Button with Personalized Message */}
               <CustomWhatsAppButton 
-                phoneNumber="+212706461139"
-                defaultMessage={`مرحباً، أود الاستفسار عن ${product.name}`}
-                productName={product.name}
+                phoneNumber="212706461139"
+                defaultMessage={`مرحباً، أود الاستفسار عن ${product.name_ar}`}
+                productName={product.name_ar}
               />
             </div>
           </div>

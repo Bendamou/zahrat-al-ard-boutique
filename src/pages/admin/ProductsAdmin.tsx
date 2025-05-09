@@ -53,14 +53,14 @@ const ProductsAdmin = () => {
       const { data: productData, error: productError } = await supabase
         .from("products")
         .insert({
-          name_ar: newProduct.name_ar || newProduct.name,
+          name_ar: newProduct.name_ar || "",
           name_fr: newProduct.name_fr || null,
           name_en: newProduct.name_en || null,
-          description_ar: newProduct.description_ar || newProduct.description || null,
+          description_ar: newProduct.description_ar || null,
           description_fr: newProduct.description_fr || null,
           description_en: newProduct.description_en || null,
           price: newProduct.price,
-          slug: newProduct.slug || generateSlug(newProduct.name_ar || newProduct.name),
+          slug: newProduct.slug || generateSlug(newProduct.name_ar || ""),
           is_available: true,
           is_featured: newProduct.is_featured || false
         })
@@ -68,37 +68,46 @@ const ProductsAdmin = () => {
         .single();
         
       if (productError) {
+        console.error("Error adding product:", productError);
         throw productError;
       }
       
       // Add product image if provided
       if (newProduct.images && newProduct.images.length > 0) {
-        for (const image of newProduct.images) {
-          await supabase
+        const imagePromises = newProduct.images.map((image: string, index: number) => {
+          return supabase
             .from("product_images")
             .insert({
               product_id: productData.id,
               image_url: typeof image === 'string' ? image : image.image_url,
-              is_primary: typeof image !== 'string' && image.is_primary ? image.is_primary : false
+              is_primary: index === 0 // First image is primary by default
             });
-        }
+        });
+        
+        await Promise.all(imagePromises);
       }
       
-      // Add categories if provided
-      if (newProduct.categories && newProduct.categories.length > 0) {
-        for (const category of newProduct.categories) {
-          await supabase
-            .from("product_categories")
-            .insert({
-              product_id: productData.id,
-              category_id: category.id
-            });
-        }
+      // Add category if provided
+      if (newProduct.category) {
+        await supabase
+          .from("product_categories")
+          .insert({
+            product_id: productData.id,
+            category_id: newProduct.category
+          });
+      } else if (newProduct.categories && newProduct.categories.length > 0) {
+        // For backward compatibility
+        await supabase
+          .from("product_categories")
+          .insert({
+            product_id: productData.id,
+            category_id: newProduct.categories[0].id
+          });
       }
       
       toast({
         title: "Produit ajouté",
-        description: `${newProduct.name_ar || newProduct.name} a été ajouté avec succès.`,
+        description: `${newProduct.name_ar} a été ajouté avec succès.`,
       });
       
       // Refresh products list
@@ -126,14 +135,14 @@ const ProductsAdmin = () => {
       const { error: productError } = await supabase
         .from("products")
         .update({
-          name_ar: updatedProduct.name_ar || updatedProduct.name,
+          name_ar: updatedProduct.name_ar || "",
           name_fr: updatedProduct.name_fr || null,
           name_en: updatedProduct.name_en || null,
-          description_ar: updatedProduct.description_ar || updatedProduct.description || null,
+          description_ar: updatedProduct.description_ar || null,
           description_fr: updatedProduct.description_fr || null,
           description_en: updatedProduct.description_en || null,
           price: updatedProduct.price,
-          slug: updatedProduct.slug || generateSlug(updatedProduct.name_ar || updatedProduct.name),
+          slug: updatedProduct.slug || generateSlug(updatedProduct.name_ar || ""),
           is_available: updatedProduct.is_available !== undefined ? updatedProduct.is_available : true,
           is_featured: updatedProduct.is_featured !== undefined ? updatedProduct.is_featured : false
         })
@@ -152,41 +161,47 @@ const ProductsAdmin = () => {
           .eq("product_id", updatedProduct.id);
           
         // Then add new images
-        for (const image of updatedProduct.images) {
-          await supabase
+        const imagePromises = updatedProduct.images.map((image: string, index: number) => {
+          return supabase
             .from("product_images")
             .insert({
               product_id: updatedProduct.id,
               image_url: typeof image === 'string' ? image : image.image_url,
-              is_primary: typeof image !== 'string' && image.is_primary ? image.is_primary : false
+              is_primary: index === 0 // First image is primary by default
             });
-        }
+        });
+        
+        await Promise.all(imagePromises);
       }
       
-      // Update categories if provided
-      if (updatedProduct.categories) {
-        // First remove existing category associations
+      // Update category
+      // First remove existing category associations
+      await supabase
+        .from("product_categories")
+        .delete()
+        .eq("product_id", updatedProduct.id);
+        
+      // Then add new category if provided
+      if (updatedProduct.category) {
         await supabase
           .from("product_categories")
-          .delete()
-          .eq("product_id", updatedProduct.id);
-          
-        // Then add new categories
-        if (updatedProduct.categories.length > 0) {
-          for (const category of updatedProduct.categories) {
-            await supabase
-              .from("product_categories")
-              .insert({
-                product_id: updatedProduct.id,
-                category_id: category.id
-              });
-          }
-        }
+          .insert({
+            product_id: updatedProduct.id,
+            category_id: updatedProduct.category
+          });
+      } else if (updatedProduct.categories && updatedProduct.categories.length > 0) {
+        // For backward compatibility
+        await supabase
+          .from("product_categories")
+          .insert({
+            product_id: updatedProduct.id,
+            category_id: updatedProduct.categories[0].id
+          });
       }
       
       toast({
         title: "Produit mis à jour",
-        description: `${updatedProduct.name_ar || updatedProduct.name} a été mis à jour avec succès.`,
+        description: `${updatedProduct.name_ar} a été mis à jour avec succès.`,
       });
       
       // Refresh products list
