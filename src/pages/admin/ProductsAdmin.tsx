@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ const ProductsAdmin = () => {
     (product.name_en && product.name_en.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleAddProduct = async (newProduct: Product) => {
+  const handleAddProduct = async (newProduct: any) => {
     setIsLoading(true);
     
     try {
@@ -54,14 +53,14 @@ const ProductsAdmin = () => {
       const { data: productData, error: productError } = await supabase
         .from("products")
         .insert({
-          name_ar: newProduct.name_ar,
+          name_ar: newProduct.name_ar || newProduct.name,
           name_fr: newProduct.name_fr || null,
           name_en: newProduct.name_en || null,
-          description_ar: newProduct.description_ar || null,
+          description_ar: newProduct.description_ar || newProduct.description || null,
           description_fr: newProduct.description_fr || null,
           description_en: newProduct.description_en || null,
           price: newProduct.price,
-          slug: newProduct.slug || generateSlug(newProduct.name_ar),
+          slug: newProduct.slug || generateSlug(newProduct.name_ar || newProduct.name),
           is_available: true,
           is_featured: newProduct.is_featured || false
         })
@@ -79,8 +78,8 @@ const ProductsAdmin = () => {
             .from("product_images")
             .insert({
               product_id: productData.id,
-              image_url: image.image_url,
-              is_primary: image.is_primary || false
+              image_url: typeof image === 'string' ? image : image.image_url,
+              is_primary: typeof image !== 'string' && image.is_primary ? image.is_primary : false
             });
         }
       }
@@ -99,7 +98,7 @@ const ProductsAdmin = () => {
       
       toast({
         title: "Produit ajouté",
-        description: `${newProduct.name_ar} a été ajouté avec succès.`,
+        description: `${newProduct.name_ar || newProduct.name} a été ajouté avec succès.`,
       });
       
       // Refresh products list
@@ -119,7 +118,7 @@ const ProductsAdmin = () => {
     }
   };
 
-  const handleUpdateProduct = async (updatedProduct: Product) => {
+  const handleUpdateProduct = async (updatedProduct: any) => {
     setIsLoading(true);
     
     try {
@@ -127,14 +126,14 @@ const ProductsAdmin = () => {
       const { error: productError } = await supabase
         .from("products")
         .update({
-          name_ar: updatedProduct.name_ar,
+          name_ar: updatedProduct.name_ar || updatedProduct.name,
           name_fr: updatedProduct.name_fr || null,
           name_en: updatedProduct.name_en || null,
-          description_ar: updatedProduct.description_ar || null,
+          description_ar: updatedProduct.description_ar || updatedProduct.description || null,
           description_fr: updatedProduct.description_fr || null,
           description_en: updatedProduct.description_en || null,
           price: updatedProduct.price,
-          slug: updatedProduct.slug,
+          slug: updatedProduct.slug || generateSlug(updatedProduct.name_ar || updatedProduct.name),
           is_available: updatedProduct.is_available !== undefined ? updatedProduct.is_available : true,
           is_featured: updatedProduct.is_featured !== undefined ? updatedProduct.is_featured : false
         })
@@ -158,8 +157,8 @@ const ProductsAdmin = () => {
             .from("product_images")
             .insert({
               product_id: updatedProduct.id,
-              image_url: image.image_url,
-              is_primary: image.is_primary || false
+              image_url: typeof image === 'string' ? image : image.image_url,
+              is_primary: typeof image !== 'string' && image.is_primary ? image.is_primary : false
             });
         }
       }
@@ -187,7 +186,7 @@ const ProductsAdmin = () => {
       
       toast({
         title: "Produit mis à jour",
-        description: `${updatedProduct.name_ar} a été mis à jour avec succès.`,
+        description: `${updatedProduct.name_ar || updatedProduct.name} a été mis à jour avec succès.`,
       });
       
       // Refresh products list

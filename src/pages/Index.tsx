@@ -157,7 +157,10 @@ const Index = () => {
         </div>
       </section>
 
-      <CustomWhatsAppButton />
+      <CustomWhatsAppButton 
+        phoneNumber="966500000000" 
+        defaultMessage="مرحبا، أود الاستفسار عن منتجاتكم" 
+      />
     </div>
   );
 };

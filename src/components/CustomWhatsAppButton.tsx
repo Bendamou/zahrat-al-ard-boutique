@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare } from "lucide-react";
 
-interface CustomWhatsAppButtonProps {
+export interface CustomWhatsAppButtonProps {
   phoneNumber: string;
   defaultMessage: string;
   productName?: string;

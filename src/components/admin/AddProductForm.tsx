@@ -1,33 +1,24 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, X, Plus } from "lucide-react";
-
-interface Product {
-  id?: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description: string;
-  images?: string[];
-}
+import { Product } from "@/services/productService";
 
 interface AddProductFormProps {
-  onSubmit: (product: Product) => void;
+  onSubmit: (product: any) => void;  // Using any type to resolve type conflicts
   onCancel: () => void;
-  initialData?: Product;
+  initialData?: any;  // Using any type to resolve type conflicts
+  isLoading?: boolean;
 }
 
-const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps) => {
-  const [formData, setFormData] = useState<Product>({
+const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: AddProductFormProps) => {
+  const [formData, setFormData] = useState<any>({
     name: "",
     price: 0,
     image: "",
-    category: "", // Aucune catégorie par défaut
+    category: "",
     description: "",
     images: []
   });
@@ -106,7 +97,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = "Le nom est obligatoire";
     }
     
@@ -114,11 +105,11 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
       newErrors.price = "Le prix doit être supérieur à zéro";
     }
     
-    if (!formData.image.trim() && (!formData.images || formData.images.length === 0)) {
+    if (!formData.image?.trim() && (!formData.images || formData.images.length === 0)) {
       newErrors.image = "Une image principale est requise";
     }
     
-    if (!formData.description.trim()) {
+    if (!formData.description?.trim()) {
       newErrors.description = "La description est obligatoire";
     }
     
@@ -165,7 +156,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           <Input
             id="name"
             name="name"
-            value={formData.name}
+            value={formData.name || ""}
             onChange={handleChange}
             placeholder="Entrez le nom du produit"
             className={errors.name ? "border-red-500" : ""}
@@ -179,7 +170,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           <select
             id="category"
             name="category"
-            value={formData.category}
+            value={formData.category || ""}
             onChange={handleChange}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
           >
@@ -199,7 +190,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
             id="price"
             name="price"
             type="number"
-            value={formData.price}
+            value={formData.price || 0}
             onChange={handleChange}
             min="0"
             step="0.01"
@@ -215,7 +206,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
             <Input
               id="image"
               name="image"
-              value={formData.image}
+              value={formData.image || ""}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
               className={errors.image ? "border-red-500" : ""}
@@ -237,7 +228,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           <div>
             <Label>Images du produit</Label>
             <div className="grid grid-cols-3 gap-2 mt-2">
-              {formData.images.map((img, index) => (
+              {formData.images.map((img: string, index: number) => (
                 <div key={index} className="relative group">
                   <img
                     src={img}
@@ -276,7 +267,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
           <Textarea
             id="description"
             name="description"
-            value={formData.description}
+            value={formData.description || ""}
             onChange={handleChange}
             placeholder="Entrez une description du produit..."
             rows={4}
@@ -287,10 +278,10 @@ const AddProductForm = ({ onSubmit, onCancel, initialData }: AddProductFormProps
         
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-3">
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Annuler
           </Button>
-          <Button type="submit" className="bg-floral-green hover:bg-floral-green/90">
+          <Button type="submit" className="bg-floral-green hover:bg-floral-green/90" disabled={isLoading}>
             {initialData ? "Mettre à jour" : "Ajouter"}
           </Button>
         </div>
