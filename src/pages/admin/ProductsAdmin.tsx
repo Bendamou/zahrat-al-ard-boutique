@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import AddProductForm from "@/components/admin/AddProductForm";
 import ProductsList from "@/components/admin/ProductsList";
 import ProductSearch from "@/components/admin/ProductSearch";
-import { getAllProducts, deleteProduct, Product } from "@/services/productService";
+import { getAllProducts, deleteProduct, Product, ProductImage } from "@/services/productService";
 import { supabase } from "@/integrations/supabase/client";
 
 const ProductsAdmin = () => {
@@ -74,7 +75,7 @@ const ProductsAdmin = () => {
       
       // Add product image if provided
       if (newProduct.images && newProduct.images.length > 0) {
-        const imagePromises = newProduct.images.map((image: string, index: number) => {
+        const imagePromises = newProduct.images.map((image: string | ProductImage, index: number) => {
           return supabase
             .from("product_images")
             .insert({
@@ -161,7 +162,7 @@ const ProductsAdmin = () => {
           .eq("product_id", updatedProduct.id);
           
         // Then add new images
-        const imagePromises = updatedProduct.images.map((image: string, index: number) => {
+        const imagePromises = updatedProduct.images.map((image: string | ProductImage, index: number) => {
           return supabase
             .from("product_images")
             .insert({
