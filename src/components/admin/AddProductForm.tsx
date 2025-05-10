@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, X, Plus } from "lucide-react";
 import { Product, Category } from "@/services/productService";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface AddProductFormProps {
   onSubmit: (product: any) => void;
@@ -19,58 +18,44 @@ interface AddProductFormProps {
 const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: AddProductFormProps) => {
   const [formData, setFormData] = useState<any>({
     name_ar: "",
+    name_fr: "",
+    name_en: "",
     price: 0,
     image: "",
     category: "",
     description_ar: "",
+    description_fr: "",
+    description_en: "",
     images: [],
-    categories: [],
-    is_featured: false
+    categories: []
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<Category[]>([]);
-  const { toast } = useToast();
 
   // Load categories from Supabase
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("categories")
-          .select("*");
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setCategories(data);
-        }
-      } catch (error) {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+      
+      if (data && !error) {
+        setCategories(data);
+      } else {
         console.error("Erreur lors du chargement des catégories:", error);
-        toast({
-          title: "خطأ",
-          description: "فشل في تحميل الفئات",
-          variant: "destructive",
-        });
       }
     };
     
     fetchCategories();
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     if (initialData) {
-      // Convertir les images en tableau s'il s'agit d'objets
-      const processedImages = initialData.images?.map((img: any) => 
-        typeof img === 'string' ? img : img.image_url
-      ) || [];
-      
       setFormData({
         ...initialData,
-        // Ensure images is always an array of strings
-        images: processedImages,
+        // Ensure images is always an array
+        images: initialData.images || [],
         // Ensure category is set if there are categories
         category: initialData.categories && initialData.categories.length > 0 
           ? initialData.categories[0].id 
@@ -81,19 +66,10 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    if (name === "is_featured") {
-      const checkboxValue = (e.target as HTMLInputElement).checked;
-      setFormData({
-        ...formData,
-        [name]: checkboxValue
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: name === "price" ? parseFloat(value) || 0 : value,
-      });
-    }
+    setFormData({
+      ...formData,
+      [name]: name === "price" ? parseFloat(value) || 0 : value,
+    });
     
     // Effacer l'erreur pour ce champ s'il y en avait une
     if (errors[name]) {
@@ -108,7 +84,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
     if (!formData.image) {
       setErrors({
         ...errors,
-        image: "الرجاء إدخال عنوان URL للصورة"
+        image: "Veuillez entrer une URL d'image"
       });
       return;
     }
@@ -141,21 +117,19 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
     const newErrors: Record<string, string> = {};
     
     if (!formData.name_ar?.trim()) {
-      newErrors.name_ar = "اسم المنتج مطلوب";
+      newErrors.name_ar = "Le nom en arabe est obligatoire";
     }
     
     if (formData.price <= 0) {
-      newErrors.price = "يجب أن يكون السعر أكبر من صفر";
+      newErrors.price = "Le prix doit être supérieur à zéro";
     }
     
     if (!formData.description_ar?.trim()) {
-      newErrors.description_ar = "وصف المنتج مطلوب";
+      newErrors.description_ar = "La description en arabe est obligatoire";
     }
     
-    // Check if we have an image in the input or in the images array
-    const hasImage = formData.image?.trim() || (formData.images && formData.images.length > 0);
-    if (!hasImage) {
-      newErrors.image = "الصورة مطلوبة";
+    if (!formData.image?.trim() && (!formData.images || formData.images.length === 0)) {
+      newErrors.image = "Une image principale est requise";
     }
     
     setErrors(newErrors);
@@ -171,12 +145,6 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
     
     // Prepare product data for submission
     let productToSubmit = { ...formData };
-    
-    // Make sure the name_fr and name_en are included even if they are empty
-    productToSubmit.name_fr = "";
-    productToSubmit.name_en = "";
-    productToSubmit.description_fr = "";
-    productToSubmit.description_en = "";
     
     // If we have an image but no images array, make sure the image is added to images
     if (formData.image && (!formData.images || formData.images.length === 0)) {
@@ -196,16 +164,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       productToSubmit.slug = generateSlug(productToSubmit.name_ar || "");
     }
     
-    try {
-      onSubmit(productToSubmit);
-    } catch (error) {
-      console.error("Erreur lors de la soumission du produit:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل في إضافة المنتج",
-        variant: "destructive"
-      });
-    }
+    onSubmit(productToSubmit);
   };
 
   // Helper function to generate a slug from a name
@@ -231,14 +190,14 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
           <ArrowLeft size={16} />
         </Button>
         <h2 className="text-xl font-semibold">
-          {initialData ? "تعديل المنتج" : "إضافة منتج جديد"}
+          {initialData ? "Modifier le produit" : "Ajouter un nouveau produit"}
         </h2>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Product Name Field - Arabic only */}
+        {/* Product Name Fields */}
         <div>
-          <Label htmlFor="name_ar">اسم المنتج *</Label>
+          <Label htmlFor="name_ar">Nom du produit (Arabe) *</Label>
           <Input
             id="name_ar"
             name="name_ar"
@@ -246,14 +205,35 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
             onChange={handleChange}
             placeholder="أدخل اسم المنتج"
             className={errors.name_ar ? "border-red-500" : ""}
-            dir="rtl"
           />
           {errors.name_ar && <p className="text-red-500 text-sm mt-1">{errors.name_ar}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="name_fr">Nom du produit (Français)</Label>
+          <Input
+            id="name_fr"
+            name="name_fr"
+            value={formData.name_fr || ""}
+            onChange={handleChange}
+            placeholder="Entrez le nom du produit"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="name_en">Nom du produit (Anglais)</Label>
+          <Input
+            id="name_en"
+            name="name_en"
+            value={formData.name_en || ""}
+            onChange={handleChange}
+            placeholder="Enter product name"
+          />
         </div>
         
         {/* Category Field */}
         <div>
-          <Label htmlFor="category">الفئة</Label>
+          <Label htmlFor="category">Catégorie</Label>
           <select
             id="category"
             name="category"
@@ -261,7 +241,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
             onChange={handleChange}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
           >
-            <option value="">-- بدون فئة --</option>
+            <option value="">-- Aucune catégorie --</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name_ar}
@@ -272,7 +252,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
         
         {/* Price Field */}
         <div>
-          <Label htmlFor="price">السعر (﷼) *</Label>
+          <Label htmlFor="price">Prix (﷼) *</Label>
           <Input
             id="price"
             name="price"
@@ -286,22 +266,9 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
         
-        {/* Featured Product Checkbox */}
-        <div className="flex items-center space-x-2">
-          <input
-            id="is_featured"
-            name="is_featured"
-            type="checkbox"
-            checked={formData.is_featured || false}
-            onChange={handleChange}
-            className="h-4 w-4 border-gray-300 rounded"
-          />
-          <Label htmlFor="is_featured">منتج مميز</Label>
-        </div>
-        
         {/* Image Field with Preview */}
         <div>
-          <Label htmlFor="image">الصورة</Label>
+          <Label htmlFor="image">Image</Label>
           <div className="flex gap-2">
             <Input
               id="image"
@@ -326,7 +293,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
         {/* Additional Images Gallery */}
         {(formData.images && formData.images.length > 0) && (
           <div>
-            <Label>صور المنتج</Label>
+            <Label>Images du produit</Label>
             <div className="grid grid-cols-3 gap-2 mt-2">
               {formData.images.map((img: string, index: number) => (
                 <div key={index} className="relative group">
@@ -352,26 +319,19 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
         {/* Preview for current image */}
         {formData.image && (
           <div className="mt-2">
-            <p className="text-sm text-gray-500 mb-1">معاينة:</p>
+            <p className="text-sm text-gray-500 mb-1">Aperçu:</p>
             <img
               src={formData.image}
-              alt="معاينة"
+              alt="Aperçu"
               className="w-40 h-40 object-cover border rounded"
               loading="lazy"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.svg";
-                setErrors({
-                  ...errors,
-                  image: "رابط الصورة غير صالح"
-                });
-              }}
             />
           </div>
         )}
         
-        {/* Description Field - Arabic only */}
+        {/* Description Fields */}
         <div>
-          <Label htmlFor="description_ar">الوصف *</Label>
+          <Label htmlFor="description_ar">Description (Arabe) *</Label>
           <Textarea
             id="description_ar"
             name="description_ar"
@@ -380,18 +340,41 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
             placeholder="أدخل وصف المنتج..."
             rows={4}
             className={errors.description_ar ? "border-red-500" : ""}
-            dir="rtl"
           />
           {errors.description_ar && <p className="text-red-500 text-sm mt-1">{errors.description_ar}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="description_fr">Description (Français)</Label>
+          <Textarea
+            id="description_fr"
+            name="description_fr"
+            value={formData.description_fr || ""}
+            onChange={handleChange}
+            placeholder="Entrez une description du produit..."
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="description_en">Description (Anglais)</Label>
+          <Textarea
+            id="description_en"
+            name="description_en"
+            value={formData.description_en || ""}
+            onChange={handleChange}
+            placeholder="Enter product description..."
+            rows={4}
+          />
         </div>
         
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-3">
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            إلغاء
+            Annuler
           </Button>
           <Button type="submit" className="bg-floral-green hover:bg-floral-green/90" disabled={isLoading}>
-            {initialData ? "تحديث" : "إضافة"}
+            {initialData ? "Mettre à jour" : "Ajouter"}
           </Button>
         </div>
       </form>

@@ -30,7 +30,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-reverse space-x-6">
+          <div className="hidden md:flex items-center space-x-6 space-x-reverse">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -55,7 +55,7 @@ const Navbar = () => {
           <button 
             className="md:hidden text-gray-700 hover:text-floral-green"
             onClick={toggleMenu}
-            aria-label={t("common", "menu", "قائمة")}
+            aria-label="قائمة"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

@@ -8,7 +8,7 @@ import {
   Info,
   Contact,
   LogOut, 
-  Tag,
+  Tag
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -24,32 +24,32 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   
   const menuItems = [
     {
-      name: "لوحة التحكم",
+      name: "Tableau de bord",
       icon: <LayoutDashboard size={18} />,
       path: "/admin/dashboard"
     },
     {
-      name: "المنتجات",
+      name: "Produits",
       icon: <Package size={18} />,
       path: "/admin/products"
     },
     {
-      name: "التصنيفات",
+      name: "Catégories",
       icon: <Tag size={18} />,
       path: "/admin/categories"
     },
     {
-      name: "الصفحة الرئيسية",
+      name: "Page d'accueil",
       icon: <Home size={18} />,
       path: "/admin/home"
     },
     {
-      name: "من نحن",
+      name: "À propos",
       icon: <Info size={18} />,
       path: "/admin/about"
     },
     {
-      name: "اتصل بنا",
+      name: "Contact",
       icon: <Contact size={18} />,
       path: "/admin/contact"
     }
@@ -58,9 +58,7 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen py-4">
       <div className="px-6 mb-8">
-        <h2 className="text-xl font-bold text-floral-green">
-          لوحة الإدارة
-        </h2>
+        <h2 className="text-xl font-bold text-floral-green">Admin Panel</h2>
       </div>
       
       <nav className="space-y-1">
@@ -74,7 +72,7 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
                   : "text-gray-600"
               }`}
             >
-              <span className="ml-2">{item.icon}</span>
+              <span className="mr-2">{item.icon}</span>
               {item.name}
             </Button>
           </Link>
@@ -86,8 +84,8 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
             className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={onLogout}
           >
-            <LogOut className="ml-2" size={18} />
-            تسجيل الخروج
+            <LogOut className="mr-2" size={18} />
+            Déconnexion
           </Button>
         </div>
       </nav>

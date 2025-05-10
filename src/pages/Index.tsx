@@ -13,7 +13,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(4);
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,10 +31,10 @@ const Index = () => {
         setProducts(allProducts);
       } catch (err) {
         console.error("Error fetching products:", err);
-        setError("خطأ في تحميل المنتجات");
+        setError("Une erreur est survenue lors du chargement des produits");
         toast({
-          title: "خطأ",
-          description: "فشل في تحميل المنتجات",
+          title: "Erreur",
+          description: "Impossible de charger les produits",
           variant: "destructive",
         });
       } finally {
@@ -49,17 +49,21 @@ const Index = () => {
     setVisibleCount(prevCount => prevCount + 4);
   };
 
-  // Fonction pour obtenir le nom du produit
+  // Function to get product name based on current language
   const getProductName = (product: Product) => {
-    return product.name_ar;
+    if (currentLanguage === 'fr' && product.name_fr) return product.name_fr;
+    if (currentLanguage === 'en' && product.name_en) return product.name_en;
+    return product.name_ar; // Default to Arabic
   };
 
-  // Fonction pour obtenir la description du produit
+  // Function to get product description based on current language
   const getProductDescription = (product: Product) => {
-    return product.description_ar || "";
+    if (currentLanguage === 'fr' && product.description_fr) return product.description_fr;
+    if (currentLanguage === 'en' && product.description_en) return product.description_en;
+    return product.description_ar || ""; // Default to Arabic or empty string
   };
 
-  // Fonction pour obtenir l'image du produit
+  // Function to get product image
   const getProductImage = (product: Product) => {
     if (product.images && product.images.length > 0) {
       // Try to find primary image first
@@ -74,9 +78,11 @@ const Index = () => {
     return "https://images.unsplash.com/photo-1518495973542-4542c06a5843";
   };
 
-  // Fonction pour obtenir la première catégorie
+  // Function to get the first category name
   const getProductCategory = (product: Product) => {
     if (product.categories && product.categories.length > 0) {
+      if (currentLanguage === 'fr') return product.categories[0].name_fr;
+      if (currentLanguage === 'en') return product.categories[0].name_en;
       return product.categories[0].name_ar;
     }
     return undefined;

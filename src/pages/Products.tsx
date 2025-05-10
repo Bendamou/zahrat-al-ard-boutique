@@ -13,6 +13,7 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<string[]>(["الكل"]);
   const [isLoading, setIsLoading] = useState(true);
+  const { currentLanguage } = useLanguage();
   const { toast } = useToast();
 
   // Load products from Supabase
@@ -30,7 +31,11 @@ const Products = () => {
         productsData.forEach(product => {
           if (product.categories && product.categories.length > 0) {
             product.categories.forEach(category => {
-              const categoryName = category.name_ar;
+              const categoryName = currentLanguage === 'fr' 
+                ? category.name_fr 
+                : currentLanguage === 'en' 
+                  ? category.name_en 
+                  : category.name_ar;
                   
               if (categoryName && !processedCategories.has(category.id)) {
                 uniqueCategories.push(categoryName);
@@ -44,8 +49,8 @@ const Products = () => {
       } catch (error) {
         console.error("Error fetching products:", error);
         toast({
-          title: "خطأ",
-          description: "فشل في تحميل المنتجات",
+          title: "Erreur",
+          description: "Impossible de charger les produits",
           variant: "destructive",
         });
       } finally {
@@ -54,11 +59,13 @@ const Products = () => {
     };
     
     fetchProducts();
-  }, [toast]);
+  }, [currentLanguage, toast]);
 
-  // Function to get product name
+  // Function to get product name based on current language
   const getProductName = (product: Product) => {
-    return product.name_ar;
+    if (currentLanguage === 'fr' && product.name_fr) return product.name_fr;
+    if (currentLanguage === 'en' && product.name_en) return product.name_en;
+    return product.name_ar; // Default to Arabic
   };
 
   // Function to get product image
@@ -79,6 +86,8 @@ const Products = () => {
   // Function to get the first category name
   const getProductCategory = (product: Product) => {
     if (product.categories && product.categories.length > 0) {
+      if (currentLanguage === 'fr') return product.categories[0].name_fr;
+      if (currentLanguage === 'en') return product.categories[0].name_en;
       return product.categories[0].name_ar;
     }
     return undefined;
