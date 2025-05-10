@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,9 +40,7 @@ const ProductsAdmin = () => {
 
   // Filter products based on search query
   const filteredProducts = products.filter((product) =>
-    product.name_ar.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (product.name_fr && product.name_fr.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (product.name_en && product.name_en.toLowerCase().includes(searchQuery.toLowerCase()))
+    product.name_ar.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddProduct = async (newProduct: any) => {
@@ -55,11 +52,11 @@ const ProductsAdmin = () => {
         .from("products")
         .insert({
           name_ar: newProduct.name_ar || "",
-          name_fr: newProduct.name_fr || null,
-          name_en: newProduct.name_en || null,
+          name_fr: "",
+          name_en: "",
           description_ar: newProduct.description_ar || null,
-          description_fr: newProduct.description_fr || null,
-          description_en: newProduct.description_en || null,
+          description_fr: "",
+          description_en: "",
           price: newProduct.price,
           slug: newProduct.slug || generateSlug(newProduct.name_ar || ""),
           is_available: true,
