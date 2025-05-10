@@ -24,10 +24,6 @@ const Admin = lazy(() => import("./pages/Admin"));
 const DashboardAdmin = lazy(() => import("./pages/admin/DashboardAdmin"));
 const ProductsAdmin = lazy(() => import("./pages/admin/ProductsAdmin"));
 const CategoriesAdmin = lazy(() => import("./pages/admin/CategoriesAdmin"));
-const MessagesAdmin = lazy(() => import("./pages/admin/MessagesAdmin"));
-const ImagesAdmin = lazy(() => import("./pages/admin/ImagesAdmin"));
-const ThemeAdmin = lazy(() => import("./pages/admin/ThemeAdmin"));
-const LanguagesAdmin = lazy(() => import("./pages/admin/LanguagesAdmin"));
 const HomeAdmin = lazy(() => import("./pages/admin/HomeAdmin"));
 const AboutAdmin = lazy(() => import("./pages/admin/AboutAdmin"));
 const ContactAdmin = lazy(() => import("./pages/admin/ContactAdmin"));
@@ -78,13 +74,9 @@ const App = () => (
               <Route path="dashboard" element={<DashboardAdmin />} />
               <Route path="products" element={<ProductsAdmin />} />
               <Route path="categories" element={<CategoriesAdmin />} />
-              <Route path="messages" element={<MessagesAdmin />} />
-              <Route path="images" element={<ImagesAdmin />} />
               <Route path="home" element={<HomeAdmin />} />
               <Route path="about" element={<AboutAdmin />} />
               <Route path="contact" element={<ContactAdmin />} />
-              <Route path="theme" element={<ThemeAdmin />} />
-              <Route path="languages" element={<LanguagesAdmin />} />
             </Route>
 
             {/* Public Routes - with simplified layout */}

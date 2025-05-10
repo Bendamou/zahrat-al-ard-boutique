@@ -1,7 +1,15 @@
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Flower2, Home, Info, Mail, Settings, ShoppingBag, User, Tag, Globe, Image, Palette, MessageSquare } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { 
+  LayoutDashboard, 
+  Package, 
+  Home,
+  Info,
+  Contact,
+  LogOut, 
+  Tag
+} from "lucide-react";
 
 interface AdminSidebarProps {
   onLogout: () => void;
@@ -11,56 +19,76 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   const location = useLocation();
   
   const isActive = (path: string) => {
-    return location.pathname.includes(path);
+    return location.pathname === path;
   };
   
   const menuItems = [
-    { name: "Tableau de bord", path: "/admin/dashboard", icon: Home },
-    { name: "Produits", path: "/admin/products", icon: ShoppingBag },
-    { name: "Catégories", path: "/admin/categories", icon: Tag },
-    { name: "Messages", path: "/admin/messages", icon: MessageSquare },
-    { name: "Images", path: "/admin/images", icon: Image },
-    { name: "Page d'accueil", path: "/admin/home", icon: Home },
-    { name: "À propos", path: "/admin/about", icon: Info },
-    { name: "Contact", path: "/admin/contact", icon: Mail },
-    { name: "Thème & Couleurs", path: "/admin/theme", icon: Palette },
-    { name: "Langues", path: "/admin/languages", icon: Globe },
+    {
+      name: "Tableau de bord",
+      icon: <LayoutDashboard size={18} />,
+      path: "/admin/dashboard"
+    },
+    {
+      name: "Produits",
+      icon: <Package size={18} />,
+      path: "/admin/products"
+    },
+    {
+      name: "Catégories",
+      icon: <Tag size={18} />,
+      path: "/admin/categories"
+    },
+    {
+      name: "Page d'accueil",
+      icon: <Home size={18} />,
+      path: "/admin/home"
+    },
+    {
+      name: "À propos",
+      icon: <Info size={18} />,
+      path: "/admin/about"
+    },
+    {
+      name: "Contact",
+      icon: <Contact size={18} />,
+      path: "/admin/contact"
+    }
   ];
-
+  
   return (
-    <div className="bg-white border-r w-64 h-screen shadow-sm flex flex-col">
-      <div className="p-4 border-b">
-        <div className="flex items-center space-x-3">
-          <Flower2 className="text-floral-pink" size={24} />
-          <span className="text-xl font-medium">Admin Panel</span>
-        </div>
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen py-4">
+      <div className="px-6 mb-8">
+        <h2 className="text-xl font-bold text-floral-green">Admin Panel</h2>
       </div>
       
-      <div className="py-4 flex-1 overflow-auto">
+      <nav className="space-y-1">
         {menuItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex items-center px-4 py-3 text-base hover:bg-gray-100 ${
-              isActive(item.path) ? "bg-floral-cream text-floral-green font-medium" : "text-gray-700"
-            }`}
-          >
-            <item.icon size={18} className="mr-3" />
-            {item.name}
+          <Link to={item.path} key={item.path}>
+            <Button
+              variant={isActive(item.path) ? "default" : "ghost"} 
+              className={`w-full justify-start ${
+                isActive(item.path) 
+                  ? "bg-floral-green text-white hover:bg-floral-green/90" 
+                  : "text-gray-600"
+              }`}
+            >
+              <span className="mr-2">{item.icon}</span>
+              {item.name}
+            </Button>
           </Link>
         ))}
-      </div>
-      
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className="flex items-center w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={onLogout}
-        >
-          <Settings size={18} className="mr-3" />
-          Déconnexion
-        </Button>
-      </div>
+        
+        <div className="pt-6">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={onLogout}
+          >
+            <LogOut className="mr-2" size={18} />
+            Déconnexion
+          </Button>
+        </div>
+      </nav>
     </div>
   );
 };

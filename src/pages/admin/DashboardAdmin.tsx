@@ -1,15 +1,63 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ShoppingBag, Users, Flower2, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardAdmin = () => {
-  // Ces données seraient normalement récupérées d'une base de données
-  const stats = [
-    { title: "Produits", value: "24", icon: ShoppingBag, color: "bg-blue-500" },
-    { title: "Commandes", value: "12", icon: Clock, color: "bg-floral-green" },
-    { title: "Catégories", value: "3", icon: Flower2, color: "bg-floral-pink" },
-    { title: "Clients", value: "46", icon: Users, color: "bg-amber-500" },
-  ];
+  const { toast } = useToast();
+  const [stats, setStats] = useState([
+    { title: "Produits", value: "0", icon: ShoppingBag, color: "bg-blue-500" },
+    { title: "Commandes", value: "0", icon: Clock, color: "bg-floral-green" },
+    { title: "Catégories", value: "0", icon: Flower2, color: "bg-floral-pink" },
+    { title: "Clients", value: "0", icon: Users, color: "bg-amber-500" },
+  ]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      setIsLoading(true);
+      try {
+        // Récupérer le nombre de produits
+        const { count: productsCount, error: productsError } = await supabase
+          .from("products")
+          .select("*", { count: "exact", head: true });
+
+        if (productsError) throw productsError;
+
+        // Récupérer le nombre de catégories
+        const { count: categoriesCount, error: categoriesError } = await supabase
+          .from("categories")
+          .select("*", { count: "exact", head: true });
+
+        if (categoriesError) throw categoriesError;
+
+        // Mettre à jour les statistiques
+        setStats(prev => 
+          prev.map(stat => {
+            if (stat.title === "Produits") {
+              return { ...stat, value: String(productsCount || 0) };
+            }
+            if (stat.title === "Catégories") {
+              return { ...stat, value: String(categoriesCount || 0) };
+            }
+            return stat;
+          })
+        );
+      } catch (error) {
+        console.error("Erreur lors du chargement des statistiques:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les statistiques",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, [toast]);
 
   return (
     <div>
@@ -23,7 +71,11 @@ const DashboardAdmin = () => {
             </div>
             <div>
               <h3 className="text-gray-500 text-sm">{stat.title}</h3>
-              <p className="font-bold text-2xl">{stat.value}</p>
+              {isLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+              ) : (
+                <p className="font-bold text-2xl">{stat.value}</p>
+              )}
             </div>
           </div>
         ))}

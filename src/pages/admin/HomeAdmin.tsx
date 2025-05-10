@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/services/productService";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const HomeAdmin = () => {
   const { toast } = useToast();
@@ -23,11 +24,13 @@ const HomeAdmin = () => {
     aboutContent: "جميع باقات الورد التي نقدمها مصنوعة يدويًا باستخدام ورود صناعية عالية الجودة. هذه الورود ليست طبيعية، لكنها تتميز بمظهر رائع ويمكن أن تدوم معك لسنوات طويلة، دون أن تذبل أو تتلف.",
     featuredTitle: "منتجاتنا المميزة"
   });
+  const [error, setError] = useState<string | null>(null);
 
   // Charger les produits depuis Supabase
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
+      setError(null);
       try {
         // Récupérer tous les produits
         const { data: productsData, error } = await supabase
@@ -41,7 +44,7 @@ const HomeAdmin = () => {
           throw error;
         }
 
-        setProducts(productsData);
+        setProducts(productsData || []);
 
         // Créer un objet pour suivre les produits mis en avant
         const featuredMap: Record<string, boolean> = {};
@@ -49,8 +52,9 @@ const HomeAdmin = () => {
           featuredMap[product.id] = product.is_featured || false;
         });
         setFeaturedProducts(featuredMap);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erreur lors du chargement des produits:", error);
+        setError(error.message || "Impossible de charger les produits");
         toast({
           title: "Erreur",
           description: "Impossible de charger les produits",
@@ -67,6 +71,7 @@ const HomeAdmin = () => {
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
       // Mettre à jour les paramètres du site (à implémenter plus tard)
@@ -85,8 +90,9 @@ const HomeAdmin = () => {
         title: "Modifications enregistrées",
         description: "Les modifications de la page d'accueil ont été enregistrées avec succès.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de l'enregistrement des modifications:", error);
+      setError(error.message || "Impossible d'enregistrer les modifications");
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer les modifications",
@@ -115,7 +121,7 @@ const HomeAdmin = () => {
   // Fonction pour récupérer l'URL de l'image principale d'un produit
   const getProductImage = (product: Product): string => {
     if (product.images && product.images.length > 0) {
-      const primaryImage = product.images.find(img => img.is_primary);
+      const primaryImage = product.images.find((img: any) => img.is_primary);
       if (primaryImage) return primaryImage.image_url;
       return product.images[0].image_url;
     }
@@ -125,6 +131,13 @@ const HomeAdmin = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Gestion de la page d'accueil</h1>
+
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSaveChanges} className="space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -214,6 +227,9 @@ const HomeAdmin = () => {
                             src={getProductImage(product)} 
                             alt={product.name_ar}
                             className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518495973542-4542c06a5843";
+                            }}
                           />
                           <div className="flex-1 overflow-hidden">
                             <p className="font-medium truncate">{product.name_ar}</p>
