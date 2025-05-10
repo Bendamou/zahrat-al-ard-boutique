@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, X, Plus } from "lucide-react";
 import { Product, Category } from "@/services/productService";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddProductFormProps {
   onSubmit: (product: any) => void;
@@ -32,30 +33,47 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<Category[]>([]);
+  const { toast } = useToast();
 
   // Load categories from Supabase
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*");
-      
-      if (data && !error) {
-        setCategories(data);
-      } else {
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*");
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setCategories(data);
+        }
+      } catch (error) {
         console.error("Erreur lors du chargement des catégories:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les catégories",
+          variant: "destructive",
+        });
       }
     };
     
     fetchCategories();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (initialData) {
+      // Convertir les images en tableau s'il s'agit d'objets
+      const processedImages = initialData.images?.map((img: any) => 
+        typeof img === 'string' ? img : img.image_url
+      ) || [];
+      
       setFormData({
         ...initialData,
-        // Ensure images is always an array
-        images: initialData.images || [],
+        // Ensure images is always an array of strings
+        images: processedImages,
         // Ensure category is set if there are categories
         category: initialData.categories && initialData.categories.length > 0 
           ? initialData.categories[0].id 
@@ -128,8 +146,10 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       newErrors.description_ar = "La description en arabe est obligatoire";
     }
     
-    if (!formData.image?.trim() && (!formData.images || formData.images.length === 0)) {
-      newErrors.image = "Une image principale est requise";
+    // Check if we have an image in the input or in the images array
+    const hasImage = formData.image?.trim() || (formData.images && formData.images.length > 0);
+    if (!hasImage) {
+      newErrors.image = "Une image est requise";
     }
     
     setErrors(newErrors);
@@ -164,7 +184,16 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
       productToSubmit.slug = generateSlug(productToSubmit.name_ar || "");
     }
     
-    onSubmit(productToSubmit);
+    try {
+      onSubmit(productToSubmit);
+    } catch (error) {
+      console.error("Erreur lors de la soumission du produit:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le produit",
+        variant: "destructive"
+      });
+    }
   };
 
   // Helper function to generate a slug from a name
@@ -205,6 +234,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
             onChange={handleChange}
             placeholder="أدخل اسم المنتج"
             className={errors.name_ar ? "border-red-500" : ""}
+            dir="rtl"
           />
           {errors.name_ar && <p className="text-red-500 text-sm mt-1">{errors.name_ar}</p>}
         </div>
@@ -325,6 +355,13 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
               alt="Aperçu"
               className="w-40 h-40 object-cover border rounded"
               loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.svg";
+                setErrors({
+                  ...errors,
+                  image: "L'URL de l'image est invalide"
+                });
+              }}
             />
           </div>
         )}
@@ -340,6 +377,7 @@ const AddProductForm = ({ onSubmit, onCancel, initialData, isLoading = false }: 
             placeholder="أدخل وصف المنتج..."
             rows={4}
             className={errors.description_ar ? "border-red-500" : ""}
+            dir="rtl"
           />
           {errors.description_ar && <p className="text-red-500 text-sm mt-1">{errors.description_ar}</p>}
         </div>

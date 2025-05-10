@@ -4,8 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import { LanguageProvider } from "./contexts/LanguageContext";
+import { lazy, Suspense, useEffect } from "react";
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -27,6 +27,7 @@ const CategoriesAdmin = lazy(() => import("./pages/admin/CategoriesAdmin"));
 const HomeAdmin = lazy(() => import("./pages/admin/HomeAdmin"));
 const AboutAdmin = lazy(() => import("./pages/admin/AboutAdmin"));
 const ContactAdmin = lazy(() => import("./pages/admin/ContactAdmin"));
+const LanguagesAdmin = lazy(() => import("./pages/admin/LanguagesAdmin"));
 
 // Loading component
 const Loading = () => (
@@ -44,6 +45,19 @@ const queryClient = new QueryClient({
   },
 });
 
+// Direction Handler Component
+const DirectionHandler = ({ children }: { children: React.ReactNode }) => {
+  const { isRTL } = useLanguage();
+  
+  useEffect(() => {
+    // Set the dir attribute on the html element
+    document.documentElement.dir = isRTL ? "rtl" : "ltr";
+    document.body.className = isRTL ? "rtl" : "ltr";
+  }, [isRTL]);
+  
+  return <>{children}</>;
+};
+
 // Layout component for public pages
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
@@ -60,37 +74,40 @@ const PublicLayout = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <Suspense fallback={<Loading />}>
-                <Admin />
-              </Suspense>
-            }>
-              <Route path="dashboard" element={<DashboardAdmin />} />
-              <Route path="products" element={<ProductsAdmin />} />
-              <Route path="categories" element={<CategoriesAdmin />} />
-              <Route path="home" element={<HomeAdmin />} />
-              <Route path="about" element={<AboutAdmin />} />
-              <Route path="contact" element={<ContactAdmin />} />
-            </Route>
+      <DirectionHandler>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <Suspense fallback={<Loading />}>
+                  <Admin />
+                </Suspense>
+              }>
+                <Route path="dashboard" element={<DashboardAdmin />} />
+                <Route path="products" element={<ProductsAdmin />} />
+                <Route path="categories" element={<CategoriesAdmin />} />
+                <Route path="home" element={<HomeAdmin />} />
+                <Route path="about" element={<AboutAdmin />} />
+                <Route path="contact" element={<ContactAdmin />} />
+                <Route path="languages" element={<LanguagesAdmin />} />
+              </Route>
 
-            {/* Public Routes - with simplified layout */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              {/* Public Routes - with simplified layout */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </DirectionHandler>
     </LanguageProvider>
   </QueryClientProvider>
 );

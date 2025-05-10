@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, currentLanguage, isRTL } = useLanguage();
 
   const navItems = [
     { name: t("common", "home", "الرئيسية"), path: "/" },
@@ -26,11 +26,12 @@ const Navbar = () => {
       <div className="container py-3">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-amiri font-bold text-floral-green">
-            زهرة الأرض
+            {currentLanguage === "fr" ? "Fleur de Terre" : 
+             (currentLanguage === "en" ? "Earth Flower" : "زهرة الأرض")}
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6 space-x-reverse">
+          <div className={`hidden md:flex items-center ${isRTL ? "space-x-reverse" : ""} space-x-6`}>
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -55,7 +56,7 @@ const Navbar = () => {
           <button 
             className="md:hidden text-gray-700 hover:text-floral-green"
             onClick={toggleMenu}
-            aria-label="قائمة"
+            aria-label={t("common", "menu", "قائمة")}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

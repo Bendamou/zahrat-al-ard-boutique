@@ -8,8 +8,10 @@ import {
   Info,
   Contact,
   LogOut, 
-  Tag
+  Tag,
+  Globe
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AdminSidebarProps {
   onLogout: () => void;
@@ -17,6 +19,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   const location = useLocation();
+  const { currentLanguage, t } = useLanguage();
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -24,41 +27,49 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
   
   const menuItems = [
     {
-      name: "Tableau de bord",
+      name: currentLanguage === "fr" ? "Tableau de bord" : (currentLanguage === "en" ? "Dashboard" : "لوحة التحكم"),
       icon: <LayoutDashboard size={18} />,
       path: "/admin/dashboard"
     },
     {
-      name: "Produits",
+      name: currentLanguage === "fr" ? "Produits" : (currentLanguage === "en" ? "Products" : "المنتجات"),
       icon: <Package size={18} />,
       path: "/admin/products"
     },
     {
-      name: "Catégories",
+      name: currentLanguage === "fr" ? "Catégories" : (currentLanguage === "en" ? "Categories" : "التصنيفات"),
       icon: <Tag size={18} />,
       path: "/admin/categories"
     },
     {
-      name: "Page d'accueil",
+      name: currentLanguage === "fr" ? "Page d'accueil" : (currentLanguage === "en" ? "Home Page" : "الصفحة الرئيسية"),
       icon: <Home size={18} />,
       path: "/admin/home"
     },
     {
-      name: "À propos",
+      name: currentLanguage === "fr" ? "À propos" : (currentLanguage === "en" ? "About" : "من نحن"),
       icon: <Info size={18} />,
       path: "/admin/about"
     },
     {
-      name: "Contact",
+      name: currentLanguage === "fr" ? "Contact" : (currentLanguage === "en" ? "Contact" : "اتصل بنا"),
       icon: <Contact size={18} />,
       path: "/admin/contact"
+    },
+    {
+      name: currentLanguage === "fr" ? "Langues" : (currentLanguage === "en" ? "Languages" : "اللغات"),
+      icon: <Globe size={18} />,
+      path: "/admin/languages"
     }
   ];
   
   return (
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen py-4">
       <div className="px-6 mb-8">
-        <h2 className="text-xl font-bold text-floral-green">Admin Panel</h2>
+        <h2 className="text-xl font-bold text-floral-green">
+          {currentLanguage === "fr" ? "Panneau d'admin" : 
+           (currentLanguage === "en" ? "Admin Panel" : "لوحة الإدارة")}
+        </h2>
       </div>
       
       <nav className="space-y-1">
@@ -85,7 +96,8 @@ const AdminSidebar = ({ onLogout }: AdminSidebarProps) => {
             onClick={onLogout}
           >
             <LogOut className="mr-2" size={18} />
-            Déconnexion
+            {currentLanguage === "fr" ? "Déconnexion" : 
+             (currentLanguage === "en" ? "Logout" : "تسجيل الخروج")}
           </Button>
         </div>
       </nav>
