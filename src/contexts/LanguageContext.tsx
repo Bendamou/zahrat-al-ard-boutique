@@ -3,7 +3,7 @@ import { createContext, useState, useContext, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-type Language = "ar" | "fr" | "en";
+type Language = "ar";
 type TranslationSection = "common" | "product" | "pages";
 
 interface Translation {
@@ -30,42 +30,27 @@ const LanguageContext = createContext<LanguageContextType>({} as LanguageContext
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("ar");
+  // Toujours définir la langue comme arabe
+  const [currentLanguage] = useState<Language>("ar");
   const [translations, setTranslations] = useState<Translation>({});
   const [loadingTranslations, setLoadingTranslations] = useState(true);
   const { toast } = useToast();
   
-  const availableLanguages: Language[] = ["ar", "fr", "en"];
-  const isRTL = currentLanguage === "ar";
+  const availableLanguages: Language[] = ["ar"];
+  const isRTL = true; // Toujours RTL puisque nous n'utilisons que l'arabe
   
+  // Cette fonction est maintenue pour la compatibilité avec le code existant
   const setLanguage = (lang: Language) => {
-    if (availableLanguages.includes(lang)) {
-      localStorage.setItem("preferred_language", lang);
-      setCurrentLanguage(lang);
-      
-      // Update HTML dir attribute for RTL/LTR support
-      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-      
-      // Add a class to the body for additional styling
-      document.body.className = lang === "ar" ? "rtl" : "ltr";
-    }
+    // Ne fait rien car nous n'avons qu'une seule langue
+    document.documentElement.dir = "rtl";
+    document.body.className = "rtl";
   };
   
   const t = (section: TranslationSection, key: string, fallback = ""): string => {
     if (
       translations &&
-      translations[currentLanguage] &&
-      translations[currentLanguage][section] &&
-      translations[currentLanguage][section][key]
-    ) {
-      return translations[currentLanguage][section][key];
-    }
-    
-    // Fallback to default language if translation doesn't exist
-    if (
-      translations && 
-      translations["ar"] && 
-      translations["ar"][section] && 
+      translations["ar"] &&
+      translations["ar"][section] &&
       translations["ar"][section][key]
     ) {
       return translations["ar"][section][key];
@@ -79,26 +64,24 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       setLoadingTranslations(true);
       const { data, error } = await supabase
         .from("translations")
-        .select("*");
+        .select("*")
+        .eq("language_code", "ar");
       
       if (error) {
         throw error;
       }
       
       if (data) {
-        // Transform the flat data into a nested structure
-        const formattedTranslations: Translation = {};
+        const formattedTranslations: Translation = {
+          ar: {}
+        };
         
         data.forEach((item) => {
-          if (!formattedTranslations[item.language_code]) {
-            formattedTranslations[item.language_code] = {};
+          if (!formattedTranslations.ar[item.section]) {
+            formattedTranslations.ar[item.section] = {};
           }
           
-          if (!formattedTranslations[item.language_code][item.section]) {
-            formattedTranslations[item.language_code][item.section] = {};
-          }
-          
-          formattedTranslations[item.language_code][item.section][item.key] = item.value;
+          formattedTranslations.ar[item.section][item.key] = item.value;
         });
         
         setTranslations(formattedTranslations);
@@ -106,8 +89,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error loading translations:", error);
       toast({
-        title: "Erreur de chargement",
-        description: "Impossible de charger les traductions",
+        title: "خطأ في التحميل",
+        description: "تعذر تحميل الترجمات",
         variant: "destructive",
       });
     } finally {
@@ -115,22 +98,14 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  // Initial setup - load language preference from localStorage
+  // Initial setup - force RTL direction
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("preferred_language") as Language;
-    if (savedLanguage && availableLanguages.includes(savedLanguage)) {
-      setCurrentLanguage(savedLanguage);
-    }
+    document.documentElement.dir = "rtl";
+    document.body.className = "rtl";
     
     // Load translations from database
     refreshTranslations();
   }, []);
-  
-  // Update HTML dir whenever language changes
-  useEffect(() => {
-    document.documentElement.dir = isRTL ? "rtl" : "ltr";
-    document.body.className = isRTL ? "rtl" : "ltr";
-  }, [isRTL]);
   
   return (
     <LanguageContext.Provider

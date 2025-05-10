@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
-import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -45,15 +45,13 @@ const queryClient = new QueryClient({
   },
 });
 
-// Direction Handler Component
-const DirectionHandler = ({ children }: { children: React.ReactNode }) => {
-  const { isRTL } = useLanguage();
-  
+// Direction Handler Component pour forcer RTL
+const DirectionHandler = ({ children }: { children: React.ReactNode }) => {  
   useEffect(() => {
-    // Set the dir attribute on the html element
-    document.documentElement.dir = isRTL ? "rtl" : "ltr";
-    document.body.className = isRTL ? "rtl" : "ltr";
-  }, [isRTL]);
+    // Force RTL
+    document.documentElement.dir = "rtl";
+    document.body.className = "rtl";
+  }, []);
   
   return <>{children}</>;
 };
